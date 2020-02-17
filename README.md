@@ -12,4 +12,4 @@ pi-pi* and n-pi* transitions as obtained from absorption spectra maxima
 Reductive electrode potentials (not all azos have potentials reported)
 Photostationary states, thermal half life of Z isomer
 
-Machine Learning property prediction on azophotoswitches. 
+Machine Learning property prediction on azophotoswitches.

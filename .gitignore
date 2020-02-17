@@ -128,14 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-data/orig/CEP_pce.csv
-active_learning/results
-neural_processes/__init__.py
-neural_processes/example.py
-neural_processes/loss.py
-neural_processes/network.py
-neural_processes/predict.py
-neural_processes/process.py
-neural_processes/utils.py
-
 .idea/*
+
+# Excel
+*.xlsx
+
+# Data processing scripts for Excel
+dataset/gen_csv.py
