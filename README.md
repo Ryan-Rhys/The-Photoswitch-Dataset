@@ -1,15 +1,27 @@
 # Photoswitches
 
-Photoswitches
+All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
+the following properties for the molecules:
 
-Proposal to generate an algorithm to relate photoswitching properties of azoheteroarenes to chemical and physical paramteres of individual switches.
+**Rate of thermal isomerisation** (units = s^-1): This is a measure of the thermal stability of the least stable 
+isomer (Z isomer for non-cyclic azophotoswitches and E isomer for cyclic azophotoswitches). Measurements are carried out 
+in solution with the compounds dissolved in the stated solvents.
 
-Possible data descriptors/labels:
-Torsional angle of E and Z isomers
-Wiberg Index (bond length of azo)
-Dipole moment
-pi-pi* and n-pi* transitions as obtained from absorption spectra maxima
-Reductive electrode potentials (not all azos have potentials reported)
-Photostationary states, thermal half life of Z isomer
+**Photo Stationary State** (units = % of stated isomer): Upon continuous irradiation of an azophotoswitch a 
+steady state distribution of the E and Z isomers is achieved. Measurements are carried out in solution with the 
+compounds dissolved in the ‘irradiation solvents’.
 
-Machine Learning property prediction on azophotoswitches.
+**pi-pi-star/n-pi-star wavelength** (units = nanometers): The wavelength at which the pi-pi*/n-pi* electronic transition 
+has a maxima for the stated isomer. Measurements are carried out in solution with the compounds dissolved in the 
+‘irradiation solvents’.
+
+**Extinction coefficient**: See “D. W. Ball, Field Guide to Spectroscopy, SPIE Press, Bellingham, WA (2006)” 
+for an introduction into the Beer-Lambert Law and its applications in photochemistry.
+
+**Wiberg Index**: A measure of the bond order of the N=N bond in an azophotoswitch. Bond order is a measure of the 
+‘strength’ of said chemical bond. This value is computed theoretically.
+
+**Irradiation wavelength**: The specific wavelength of light used to irradiate samples from E-Z or Z-E such that 
+a photo stationary state is obtained. Measurements are carried out in solution with the compounds dissolved in the 
+‘irradiation solvents’.
+
