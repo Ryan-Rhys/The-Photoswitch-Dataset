@@ -4,6 +4,7 @@
 
 We recommend using a virtual environment to run the property prediction scripts.
 
+```
 conda create -n photoswitch python=3.7
 
 conda install scikit-learn==0.22.1
@@ -11,6 +12,7 @@ conda install scikit-learn==0.22.1
 conda install rdkit==2019.09.2
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
+```
 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
