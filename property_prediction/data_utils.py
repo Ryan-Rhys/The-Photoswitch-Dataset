@@ -20,23 +20,10 @@ def load_thermal_data(path):
     smiles_list = df['SMILES'].to_list()
     thermal_vals = df['rate of thermal isomerisation from Z-E in s-1'].to_numpy()
 
-    # Remove molecules for which the value of thermal isomerisation rate is infinity
+    # Remove molecules for which the value of thermal isomerisation rate is infinity or not available
 
-    smiles_list.remove('C1(/N=N\\2)=CC=CC=C1CCCC3=C2C=CC=C3')  # the infinity value
-    smiles_list.remove('CN1C(/N=N/C2=CC=CC=C2)=CC=C1')
-    smiles_list.remove('CN(N=C1)C=C1/N=N/C2=C(F)C=CC=C2F')
-    smiles_list.remove('CN(N=C1C)C(C)=C1/N=N/C2=C(Cl)C=CC=C2Cl')
-    smiles_list.remove('CN(N=C1C)C(C)=C1/N=N/C2=C(OC)C=CC=C2OC')
-    smiles_list.remove('FC1=CC=CC=C1/N=N/C2=C(F)C=CC=C2')
-    smiles_list.remove('CC1=C(/N=N/C2=CC=CC=C2)C=NC=C1')
-    thermal_vals = np.delete(thermal_vals, 51)  # the infinity value
-    thermal_vals = np.delete(thermal_vals, 34)
-    thermal_vals = np.delete(thermal_vals, 18)
-    thermal_vals = np.delete(thermal_vals, 16)
-    thermal_vals = np.delete(thermal_vals, 15)
-    thermal_vals = np.delete(thermal_vals, 14)
-    thermal_vals = np.delete(thermal_vals, 10)
-    thermal_vals = thermal_vals.astype(np.float)
+    smiles_list = smiles_list[:65]
+    thermal_vals = thermal_vals[:65]
 
     return smiles_list, thermal_vals
 
@@ -51,17 +38,29 @@ def load_e_iso_pi_data(path):
 
     df = pd.read_csv(path)
     smiles_list = df['SMILES'].to_list()
-    smiles_list = smiles_list[:42]
-    e_iso_pi_vals = df['E isomer pi-pi* wavelength in nm'].to_numpy()[0:42]
     smiles_list.remove('C12=CC=CC=C1CCC3=CC=CC=C3/N=N\\2')
-    smiles_list.remove('CN(N=C1)C=C1/N=N/C2=C(F)C=CC=C2F')
+    e_iso_pi_vals = df['E isomer pi-pi* wavelength in nm'].to_numpy()
     e_iso_pi_vals = np.delete(e_iso_pi_vals, 31)
-    e_iso_pi_vals = np.delete(e_iso_pi_vals, 15)
 
     return smiles_list, e_iso_pi_vals
 
 
-def transform_data(X_train, y_train, X_test, y_test, n_components):
+def load_z_iso_pi_data(path):
+    """
+    Load the SMILES as x-values and the Z isomer pi-pi* wavelength in nm as the y-values.
+
+    :param path: path to dataset
+    :return: SMILES, property
+    """
+
+    df = pd.read_csv(path)
+    smiles_list = df['SMILES'].to_list()
+    z_iso_pi_vals = df['Z isomer pi-pi* wavelength in nm'].to_numpy()
+
+    return smiles_list, z_iso_pi_vals
+
+
+def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=False):
     """
     Apply feature scaling, dimensionality reduction to the data. Return the standardised and low-dimensional train and
     test sets together with the scaler object for the target values.
@@ -70,7 +69,8 @@ def transform_data(X_train, y_train, X_test, y_test, n_components):
     :param y_train: train labels
     :param X_test: input test data
     :param y_test: test labels
-    :param n_components: number of principal components to keep
+    :param n_components: number of principal components to keep when use_pca = True
+    :param use_pca: Whether or not to use PCA
     :return: X_train_scaled, y_train_scaled, X_test_scaled, y_test_scaled, y_scaler
     """
 
@@ -80,8 +80,11 @@ def transform_data(X_train, y_train, X_test, y_test, n_components):
     y_scaler = StandardScaler()
     y_train_scaled = y_scaler.fit_transform(y_train.reshape(-1, 1))
     y_test_scaled = y_scaler.transform(y_test.reshape(-1, 1))
-    pca = PCA(n_components)
-    X_train_scaled = pca.fit_transform(X_train_scaled)
-    print('Fraction of variance retained is: ' + str(sum(pca.explained_variance_ratio_)))
-    X_test_scaled = pca.transform(X_test_scaled)
+
+    if use_pca:
+        pca = PCA(n_components)
+        X_train_scaled = pca.fit_transform(X_train_scaled)
+        print('Fraction of variance retained is: ' + str(sum(pca.explained_variance_ratio_)))
+        X_test_scaled = pca.transform(X_test_scaled)
+
     return X_train_scaled, y_train_scaled, X_test_scaled, y_test_scaled, y_scaler

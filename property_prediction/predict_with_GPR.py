@@ -1,5 +1,5 @@
 """
-Script for training a model to predict the rate of thermal isomerisation in the photoswitch dataset.
+Script for training a model to predict properties in the photoswitch dataset using Gaussian Process Regression.
 """
 
 import gpflow
@@ -9,11 +9,12 @@ from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import load_e_iso_pi_data, load_thermal_data, transform_data
+from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data, transform_data
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'
 TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi']
 use_fragments = True
+use_pca = False
 
 
 if __name__ == '__main__':
@@ -22,13 +23,17 @@ if __name__ == '__main__':
         smiles_list, y = load_thermal_data(PATH)
     elif TASK == 'e_iso_pi':
         smiles_list, y = load_e_iso_pi_data(PATH)
+    elif TASK == 'z_iso_pi':
+        smiles_list, y = load_z_iso_pi_data(PATH)
     else:
         raise Exception('Must specify a valid task')
 
     if not use_fragments:
 
         feat = 'fingerprints'
-        n_components = 20
+
+        if use_pca:
+            n_components = 50
 
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
         X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
@@ -37,7 +42,9 @@ if __name__ == '__main__':
     else:
 
         feat = 'fragments'
-        n_components = 6
+
+        if use_pca:
+            n_components = 50
 
         # descList[115:] contains fragment-based features only
         # (https://www.rdkit.org/docs/source/rdkit.Chem.Fragments.html)
@@ -52,6 +59,8 @@ if __name__ == '__main__':
                 raise Exception('molecule {}'.format(i) + ' is not canonicalised')
             X[i, :] = features
 
+    num_features = np.shape(X)[1]
+
     m = None
 
     def objective_closure():
@@ -60,16 +69,17 @@ if __name__ == '__main__':
     r2_list = []
     rmse_list = []
     mae_list = []
+
     print('\nBeginning training loop...')
-    j = 0
+    j = 0  # index for saving results
 
-    for i in range(5, 25):
+    for i in range(0, 25):
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=i+500)
-        X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
+        X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components=None)
 
-        k = gpflow.kernels.RBF(lengthscale=np.ones(n_components))
-        m = gpflow.models.GPR( data=(X_train, y_train), kernel=k, noise_variance=1)
+        k = gpflow.kernels.RBF(lengthscale=np.ones(num_features))
+        m = gpflow.models.GPR(data=(X_train, y_train), kernel=k, noise_variance=1)
 
         opt = gpflow.optimizers.Scipy()
 
@@ -95,9 +105,9 @@ if __name__ == '__main__':
         rmse_list.append(rmse)
         mae_list.append(mae)
 
-        np.savetxt(TASK + '/results/_seed_'+str(j)+'_ypred_'+feat+'.txt', y_pred)
-        np.savetxt(TASK + '/results/_seed_'+str(j)+'_ytest.txt', y_test)
-        np.savetxt(TASK + '/results/_seed_'+str(j)+'_ystd_'+feat+'.txt', np.sqrt(y_var))
+        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ypred_'+feat+'.txt', y_pred)
+        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ytest.txt', y_test)
+        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ystd_'+feat+'.txt', np.sqrt(y_var))
 
         j += 1
 
