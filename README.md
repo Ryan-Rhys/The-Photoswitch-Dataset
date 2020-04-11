@@ -1,4 +1,6 @@
-# Photoswitches
+# The Molecular Photoswitch Dataset
+
+This repository provides a curated dataset of the properties of 98 molecular photoswitch molecules.
 
 # Dependencies
 
@@ -12,6 +14,9 @@ conda install rdkit==2019.09.2
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 
+# What we provide
+
+The dataset includes molecular properties for 98 photoswitch molecules. 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
 
