@@ -6,6 +6,7 @@ This repository provides a curated dataset of the properties of 98 molecular pho
 
 We recommend using a virtual environment to run the property prediction scripts.
 
+```
 conda create -n photoswitch python=3.7
 
 conda install scikit-learn==0.22.1
@@ -13,6 +14,7 @@ conda install scikit-learn==0.22.1
 conda install rdkit==2019.09.2
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
+```
 
 # What we provide
 
