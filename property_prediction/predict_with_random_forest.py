@@ -1,3 +1,5 @@
+# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Author: Ryan-Rhys Griffiths
 """
 Property prediction on the photoswitch dataset using Random Forest.
 """
@@ -8,10 +10,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data, transform_data
+from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data, load_e_iso_n_data, \
+    load_z_iso_n_data, transform_data
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi']
+PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
+TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_fragments = False
 use_pca = False
 
@@ -24,6 +27,10 @@ if __name__ == '__main__':
         smiles_list, y = load_e_iso_pi_data(PATH)
     elif TASK == 'z_iso_pi':
         smiles_list, y = load_z_iso_pi_data(PATH)
+    elif TASK == 'e_iso_n':
+        smiles_list, y = load_e_iso_n_data(PATH)
+    elif TASK == 'z_iso_n':
+        smiles_list, y = load_z_iso_n_data(PATH)
     else:
         raise Exception('Must specify a valid task')
 

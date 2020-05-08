@@ -13,6 +13,8 @@ conda install scikit-learn==0.22.1
 
 conda install rdkit==2019.09.2
 
+conda install umap-learn seaborn xlrd
+
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 ```
 

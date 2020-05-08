@@ -45,6 +45,23 @@ def load_e_iso_pi_data(path):
     return smiles_list, e_iso_pi_vals
 
 
+def load_e_iso_n_data(path):
+    """
+    Load the SMILES as x-values and the E isomer n-pi* wavelength in nm as the y-values.
+
+    :param path: path to dataset
+    :return: SMILES, property
+    """
+
+    df = pd.read_csv(path)
+    smiles_list = df['SMILES'].to_list()
+    smiles_list = smiles_list[0:14] + smiles_list[15:38] + smiles_list[39:]
+    e_iso_n_vals = df['E isomer n-pi* wavelength in nm'].to_numpy()
+    e_iso_n_vals = np.delete(e_iso_n_vals, np.array([14, 38]))
+
+    return smiles_list, e_iso_n_vals
+
+
 def load_z_iso_pi_data(path):
     """
     Load the SMILES as x-values and the Z isomer pi-pi* wavelength in nm as the y-values.
@@ -55,9 +72,32 @@ def load_z_iso_pi_data(path):
 
     df = pd.read_csv(path)
     smiles_list = df['SMILES'].to_list()
+
+    # Remove NaN indices
+    smiles_list = smiles_list[0:12] + smiles_list[15:19] + [smiles_list[33]] + smiles_list[42:]
     z_iso_pi_vals = df['Z isomer pi-pi* wavelength in nm'].to_numpy()
+    selection = np.concatenate((np.arange(19, 33, 1), np.arange(34, 42, 1)))
+    selection = np.concatenate((np.arange(12, 15, 1), selection))
+    z_iso_pi_vals = np.delete(z_iso_pi_vals, selection)
 
     return smiles_list, z_iso_pi_vals
+
+
+def load_z_iso_n_data(path):
+    """
+    Load the SMILES as x-values and the Z isomer n-pi* wavelength in nm as the y-values.
+
+    :param path: path to dataset
+    :return: SMILES, property
+    """
+
+    df = pd.read_csv(path)
+    smiles_list = df['SMILES'].to_list()
+    smiles_list = smiles_list[0:12] + smiles_list[15:32] + smiles_list[33:41] + smiles_list[42:]
+    z_iso_n_vals = df['Z isomer n-pi* wavelength in nm'].to_numpy()
+    z_iso_n_vals = np.delete(z_iso_n_vals, np.array([12, 13, 14, 32, 41]))
+
+    return smiles_list, z_iso_n_vals
 
 
 def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=False):
