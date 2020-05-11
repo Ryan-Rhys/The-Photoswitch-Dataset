@@ -2,7 +2,7 @@
 
 This repository provides a curated dataset of the properties of 98 molecular photoswitch molecules.
 
-# Dependencies
+# Installation
 
 We recommend using a virtual environment to run the property prediction scripts.
 
