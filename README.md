@@ -13,6 +13,8 @@ conda install scikit-learn==0.22.1
 
 conda install rdkit==2019.09.2
 
+conda install umap-learn seaborn xlrd
+
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 ```
 
@@ -33,6 +35,9 @@ compounds dissolved in the ‘irradiation solvents’.
 **pi-pi-star/n-pi-star wavelength** (units = nanometers): The wavelength at which the pi-pi*/n-pi* electronic transition 
 has a maxima for the stated isomer. Measurements are carried out in solution with the compounds dissolved in the 
 ‘irradiation solvents’.
+
+**DFT-computed pi-pi-star/n-pi-star wavelengths** (units = nanometers): DFT-computed wavelengths at which the
+pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
 
 **Extinction coefficient**: See “D. W. Ball, Field Guide to Spectroscopy, SPIE Press, Bellingham, WA (2006)” 
 for an introduction into the Beer-Lambert Law and its applications in photochemistry.

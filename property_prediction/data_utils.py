@@ -31,6 +31,7 @@ def load_thermal_data(path):
 def load_e_iso_pi_data(path):
     """
     Load the SMILES as x-values and the E isomer pi-pi* wavelength in nm as the y-values.
+    97 molecules with valid experimental values as of 9 May 2020.
 
     :param path: path to dataset
     :return: SMILES, property
@@ -45,9 +46,10 @@ def load_e_iso_pi_data(path):
     return smiles_list, e_iso_pi_vals
 
 
-def load_z_iso_pi_data(path):
+def load_e_iso_n_data(path):
     """
-    Load the SMILES as x-values and the Z isomer pi-pi* wavelength in nm as the y-values.
+    Load the SMILES as x-values and the E isomer n-pi* wavelength in nm as the y-values.
+    96 valid molecules for this property as of 9 May 2020.
 
     :param path: path to dataset
     :return: SMILES, property
@@ -55,9 +57,54 @@ def load_z_iso_pi_data(path):
 
     df = pd.read_csv(path)
     smiles_list = df['SMILES'].to_list()
+    smiles_list = smiles_list[0:14] + smiles_list[15:38] + smiles_list[39:]
+    e_iso_n_vals = df['E isomer n-pi* wavelength in nm'].to_numpy()
+    e_iso_n_vals = np.delete(e_iso_n_vals, np.array([14, 38]))
+
+    return smiles_list, e_iso_n_vals
+
+
+def load_z_iso_pi_data(path):
+    """
+    Load the SMILES as x-values and the Z isomer pi-pi* wavelength in nm as the y-values.
+    84 valid molecules for this property as of 9 May 2020.
+
+    :param path: path to dataset
+    :return: SMILES, property
+    """
+
+    df = pd.read_csv(path)
+    smiles_list = df['SMILES'].to_list()
+
+    # Remove NaN indices
+    smiles_list = smiles_list[0:12] + smiles_list[15:25] + [smiles_list[26]] + smiles_list[28:31] + [smiles_list[33]] + [smiles_list[37]] + smiles_list[42:]
     z_iso_pi_vals = df['Z isomer pi-pi* wavelength in nm'].to_numpy()
+    selection = np.concatenate((np.arange(34, 37, 1), np.arange(38, 42, 1)))
+    selection = np.concatenate((np.arange(31, 33, 1), selection))
+    selection = np.concatenate((np.array([27]), selection))
+    selection = np.concatenate((np.array([25]), selection))
+    selection = np.concatenate((np.arange(12, 15, 1), selection))
+    z_iso_pi_vals = np.delete(z_iso_pi_vals, selection)
 
     return smiles_list, z_iso_pi_vals
+
+
+def load_z_iso_n_data(path):
+    """
+    Load the SMILES as x-values and the Z isomer n-pi* wavelength in nm as the y-values.
+    93 valid molecules with this property as of 9 May 2020
+
+    :param path: path to dataset
+    :return: SMILES, property
+    """
+
+    df = pd.read_csv(path)
+    smiles_list = df['SMILES'].to_list()
+    smiles_list = smiles_list[0:12] + smiles_list[15:32] + smiles_list[33:41] + smiles_list[42:]
+    z_iso_n_vals = df['Z isomer n-pi* wavelength in nm'].to_numpy()
+    z_iso_n_vals = np.delete(z_iso_n_vals, np.array([12, 13, 14, 32, 41]))
+
+    return smiles_list, z_iso_n_vals
 
 
 def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=False):
