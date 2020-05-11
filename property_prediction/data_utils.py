@@ -31,6 +31,7 @@ def load_thermal_data(path):
 def load_e_iso_pi_data(path):
     """
     Load the SMILES as x-values and the E isomer pi-pi* wavelength in nm as the y-values.
+    97 molecules with valid experimental values as of 9 May 2020.
 
     :param path: path to dataset
     :return: SMILES, property
@@ -48,6 +49,7 @@ def load_e_iso_pi_data(path):
 def load_e_iso_n_data(path):
     """
     Load the SMILES as x-values and the E isomer n-pi* wavelength in nm as the y-values.
+    96 valid molecules for this property as of 9 May 2020.
 
     :param path: path to dataset
     :return: SMILES, property
@@ -65,6 +67,7 @@ def load_e_iso_n_data(path):
 def load_z_iso_pi_data(path):
     """
     Load the SMILES as x-values and the Z isomer pi-pi* wavelength in nm as the y-values.
+    84 valid molecules for this property as of 9 May 2020.
 
     :param path: path to dataset
     :return: SMILES, property
@@ -74,9 +77,12 @@ def load_z_iso_pi_data(path):
     smiles_list = df['SMILES'].to_list()
 
     # Remove NaN indices
-    smiles_list = smiles_list[0:12] + smiles_list[15:19] + [smiles_list[33]] + smiles_list[42:]
+    smiles_list = smiles_list[0:12] + smiles_list[15:25] + [smiles_list[26]] + smiles_list[28:31] + [smiles_list[33]] + [smiles_list[37]] + smiles_list[42:]
     z_iso_pi_vals = df['Z isomer pi-pi* wavelength in nm'].to_numpy()
-    selection = np.concatenate((np.arange(19, 33, 1), np.arange(34, 42, 1)))
+    selection = np.concatenate((np.arange(34, 37, 1), np.arange(38, 42, 1)))
+    selection = np.concatenate((np.arange(31, 33, 1), selection))
+    selection = np.concatenate((np.array([27]), selection))
+    selection = np.concatenate((np.array([25]), selection))
     selection = np.concatenate((np.arange(12, 15, 1), selection))
     z_iso_pi_vals = np.delete(z_iso_pi_vals, selection)
 
@@ -86,6 +92,7 @@ def load_z_iso_pi_data(path):
 def load_z_iso_n_data(path):
     """
     Load the SMILES as x-values and the Z isomer n-pi* wavelength in nm as the y-values.
+    93 valid molecules with this property as of 9 May 2020
 
     :param path: path to dataset
     :return: SMILES, property

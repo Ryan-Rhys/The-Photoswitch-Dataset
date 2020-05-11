@@ -36,6 +36,9 @@ compounds dissolved in the ‘irradiation solvents’.
 has a maxima for the stated isomer. Measurements are carried out in solution with the compounds dissolved in the 
 ‘irradiation solvents’.
 
+**DFT-computed pi-pi-star/n-pi-star wavelengths** (units = nanometers): DFT-computed wavelengths at which the
+pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
+
 **Extinction coefficient**: See “D. W. Ball, Field Guide to Spectroscopy, SPIE Press, Bellingham, WA (2006)” 
 for an introduction into the Beer-Lambert Law and its applications in photochemistry.
 
