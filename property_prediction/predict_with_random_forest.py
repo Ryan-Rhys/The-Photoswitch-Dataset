@@ -14,7 +14,7 @@ from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data
     load_z_iso_n_data, transform_data
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'z_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_fragments = False
 use_pca = False
 
