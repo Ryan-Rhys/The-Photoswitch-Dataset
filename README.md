@@ -1,6 +1,6 @@
-# The Molecular Photoswitch Dataset
+# The Photoswitch Dataset
 
-This repository provides a curated dataset of the properties of 109 molecular photoswitch molecules.
+This repository provides a curated dataset of the properties of 109 photoswitch molecules.
 
 # Installation
 
@@ -13,7 +13,7 @@ conda install scikit-learn==0.22.1
 
 conda install rdkit==2019.09.2
 
-conda install umap-learn seaborn xlrd
+conda install umap-learn seaborn xlrd matplotlib
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 ```
