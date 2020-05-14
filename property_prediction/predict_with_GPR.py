@@ -1,23 +1,45 @@
+# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Author: Ryan-Rhys Griffiths
 """
 Script for training a model to predict properties in the photoswitch dataset using Gaussian Process Regression.
 """
 
 import gpflow
-from gpflow.utilities import print_summary
+from gpflow.utilities import print_summary, positive
 import numpy as np
 from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import tensorflow as tf
 
-from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data, transform_data
+from data_utils import load_e_iso_pi_data, load_e_iso_n_data, load_z_iso_n_data, \
+    load_thermal_data, load_z_iso_pi_data, transform_data
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi']
-use_fragments = True
+
+class Tanimoto(gpflow.kernels.Kernel):
+    def __init__(self):
+        super().__init__(active_dims=[0])
+        self.variance = gpflow.Parameter(1.0, transform=positive())
+
+    def K(self, X, X2=None):
+        if X2 is None:
+            X2 = X
+        return self.variance * (len(X) - tf.abs(X - X2))/(len(X) + len(X2) - tf.abs(X - X2))  # this returns a 2D tensor
+
+    def K_diag(self, X):
+        return self.variance * tf.reshape(X, (-1,))  # this returns a 1D tensor
+
+
+PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv' # Change as appropriate
+TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+use_fragments = False
 use_pca = False
 
 
 if __name__ == '__main__':
+
+    k_tanimoto = Tanimoto()
+    print_summary(k_tanimoto, fmt="notebook")
 
     if TASK == 'thermal':
         smiles_list, y = load_thermal_data(PATH)
@@ -25,15 +47,16 @@ if __name__ == '__main__':
         smiles_list, y = load_e_iso_pi_data(PATH)
     elif TASK == 'z_iso_pi':
         smiles_list, y = load_z_iso_pi_data(PATH)
+    elif TASK == 'e_iso_n':
+        smiles_list, y = load_e_iso_n_data(PATH)
+    elif TASK == 'z_iso_n':
+        smiles_list, y = load_z_iso_n_data(PATH)
     else:
         raise Exception('Must specify a valid task')
 
     if not use_fragments:
 
         feat = 'fingerprints'
-
-        if use_pca:
-            n_components = 50
 
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
         X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
@@ -42,9 +65,6 @@ if __name__ == '__main__':
     else:
 
         feat = 'fragments'
-
-        if use_pca:
-            n_components = 50
 
         # descList[115:] contains fragment-based features only
         # (https://www.rdkit.org/docs/source/rdkit.Chem.Fragments.html)
@@ -58,6 +78,11 @@ if __name__ == '__main__':
             except:
                 raise Exception('molecule {}'.format(i) + ' is not canonicalised')
             X[i, :] = features
+
+    if use_pca:
+        n_components = 50
+    else:
+        n_components = None
 
     num_features = np.shape(X)[1]
 
@@ -76,9 +101,10 @@ if __name__ == '__main__':
     for i in range(0, 25):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
-        X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components=None)
+        #X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components=None)
 
-        k = gpflow.kernels.RBF(lengthscale=np.ones(num_features))
+        k = Tanimoto()
+        #k = gpflow.kernels.SquaredExponential(lengthscales=np.ones(num_features))
         m = gpflow.models.GPR(data=(X_train, y_train), kernel=k, noise_variance=1)
 
         opt = gpflow.optimizers.Scipy()
@@ -90,8 +116,8 @@ if __name__ == '__main__':
         # mean and variance GP prediction
 
         y_pred, y_var = m.predict_f(X_test)
-        y_pred = y_scaler.inverse_transform(y_pred)
-        y_test = y_scaler.inverse_transform(y_test)
+        #y_pred = y_scaler.inverse_transform(y_pred)
+        #y_test = y_scaler.inverse_transform(y_test)
         score = r2_score(y_test, y_pred)
 
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
