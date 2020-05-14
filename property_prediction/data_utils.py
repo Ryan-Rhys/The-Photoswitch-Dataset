@@ -1,5 +1,7 @@
+# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Author: Ryan-Rhys Griffiths
 """
-Script for loading data
+module for loading data
 """
 
 import numpy as np
