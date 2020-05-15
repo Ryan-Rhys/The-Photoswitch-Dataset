@@ -5,41 +5,28 @@ Script for training a model to predict properties in the photoswitch dataset usi
 """
 
 import gpflow
-from gpflow.utilities import print_summary, positive
+from gpflow.utilities import print_summary
+from matplotlib import pyplot as plt
 import numpy as np
 from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-import tensorflow as tf
 
 from data_utils import load_e_iso_pi_data, load_e_iso_n_data, load_z_iso_n_data, \
     load_thermal_data, load_z_iso_pi_data, transform_data
-
-
-class Tanimoto(gpflow.kernels.Kernel):
-    def __init__(self):
-        super().__init__(active_dims=[0])
-        self.variance = gpflow.Parameter(1.0, transform=positive())
-
-    def K(self, X, X2=None):
-        if X2 is None:
-            X2 = X
-        return self.variance * (len(X) - tf.abs(X - X2))/(len(X) + len(X2) - tf.abs(X - X2))  # this returns a 2D tensor
-
-    def K_diag(self, X):
-        return self.variance * tf.reshape(X, (-1,))  # this returns a 1D tensor
+from kernels import Tanimoto
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv' # Change as appropriate
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_fragments = False
 use_pca = False
+n_trials = 500  # number of random train/test splits to use
+test_set_size = 0.2  # fraction of datapoints to use in the test set
+use_rmse_conf = False  # Whether to use rmse confidence or mae confidence
 
 
 if __name__ == '__main__':
-
-    k_tanimoto = Tanimoto()
-    print_summary(k_tanimoto, fmt="notebook")
 
     if TASK == 'thermal':
         smiles_list, y = load_thermal_data(PATH)
@@ -59,7 +46,7 @@ if __name__ == '__main__':
         feat = 'fingerprints'
 
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
-        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
+        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=2048) for mol in rdkit_mols]
         X = np.asarray(X)
 
     else:
@@ -79,6 +66,8 @@ if __name__ == '__main__':
                 raise Exception('molecule {}'.format(i) + ' is not canonicalised')
             X[i, :] = features
 
+    # If True we perform Principal Components Regression
+
     if use_pca:
         n_components = 50
     else:
@@ -86,7 +75,11 @@ if __name__ == '__main__':
 
     num_features = np.shape(X)[1]
 
+    # We define the Gaussian Process Regression Model using the Tanimoto kernel
+
     m = None
+    k_tanimoto = Tanimoto()
+    print_summary(k_tanimoto, fmt="notebook")
 
     def objective_closure():
         return -m.log_marginal_likelihood()
@@ -95,31 +88,64 @@ if __name__ == '__main__':
     rmse_list = []
     mae_list = []
 
+    # We pre-allocate arrays for plotting confidence-error curves
+
+    _, _, _, y_test = train_test_split(X, y, test_size=test_set_size)  # To get test set size
+    n_test = len(y_test)
+
+    rmse_confidence_list = np.zeros((n_trials, n_test))
+    mae_confidence_list = np.zeros((n_trials, n_test))
+
     print('\nBeginning training loop...')
     j = 0  # index for saving results
 
-    for i in range(0, 25):
+    for i in range(0, n_trials):
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
-        #X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components=None)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_set_size, random_state=i)
+
+        y_train = y_train.reshape(-1, 1)
+        y_test = y_test.reshape(-1, 1)
+
+        #  We standardise the outputs but leave the inputs unchanged
+
+        _, y_train, _, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components=None)
+
+        X_train = X_train.astype(np.float64)
+        X_test = X_test.astype(np.float64)
 
         k = Tanimoto()
-        #k = gpflow.kernels.SquaredExponential(lengthscales=np.ones(num_features))
         m = gpflow.models.GPR(data=(X_train, y_train), kernel=k, noise_variance=1)
 
+        # Optimise the kernel variance and noise level by the marginal likelihood
+
         opt = gpflow.optimizers.Scipy()
-
-        opt_logs = opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
-
+        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
         print_summary(m)
 
         # mean and variance GP prediction
 
         y_pred, y_var = m.predict_f(X_test)
-        #y_pred = y_scaler.inverse_transform(y_pred)
-        #y_test = y_scaler.inverse_transform(y_test)
-        score = r2_score(y_test, y_pred)
+        y_pred = y_scaler.inverse_transform(y_pred)
+        y_test = y_scaler.inverse_transform(y_test)
 
+        # Compute scores for confidence curve plotting.
+
+        ranked_confidence_list = np.argsort(y_var, axis=0).flatten()
+
+        for k in range(len(y_test)):
+
+            # Construct the RMSE error for each level of confidence
+
+            conf = ranked_confidence_list[0:k+1]
+            rmse = np.sqrt(mean_squared_error(y_test[conf], y_pred[conf]))
+            rmse_confidence_list[i, k] = rmse
+
+            # Construct the MAE error for each level of confidence
+
+            mae = mean_absolute_error(y_test[conf], y_pred[conf])
+            mae_confidence_list[i, k] = mae
+
+        score = r2_score(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         mae = mean_absolute_error(y_test, y_pred)
 
@@ -140,6 +166,59 @@ if __name__ == '__main__':
     r2_list = np.array(r2_list)
     rmse_list = np.array(rmse_list)
     mae_list = np.array(mae_list)
+
     print("\nmean R^2: {:.4f} +- {:.4f}".format(np.mean(r2_list), np.std(r2_list)/np.sqrt(len(r2_list))))
     print("mean RMSE: {:.4f} +- {:.4f}".format(np.mean(rmse_list), np.std(rmse_list)/np.sqrt(len(rmse_list))))
     print("mean MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
+
+    # Plot confidence-error curves
+
+    confidence_percentiles = np.arange(0, 100, 100/len(y_test))
+
+    if use_rmse_conf:
+
+        rmse_mean = np.mean(rmse_confidence_list, axis=0)
+        rmse_std = np.std(rmse_confidence_list, axis=0)
+
+        # We flip because we want the most confident predictions on the right-hand side of the plot
+
+        rmse_mean = np.flip(rmse_mean)
+        rmse_std = np.flip(rmse_std)
+
+        # One-sigma error bars
+
+        lower = rmse_mean - rmse_std
+        upper = rmse_mean + rmse_std
+
+        plt.plot(confidence_percentiles, rmse_mean, label='mean')
+        plt.fill_between(confidence_percentiles, lower, upper, alpha=0.2)
+        plt.xlabel('Confidence Percentile')
+        plt.ylabel('RMSE (nm)')
+        plt.ylim([0, np.max(upper) + 1])
+        plt.xlim([0, 100*((len(y_test) - 1) / len(y_test))])
+        plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
+        plt.show()
+        plt.savefig(TASK + '/results/gpr/confidence_curve_rmse.png')
+
+    else:
+
+        # We plot the Mean-absolute error confidence-error curves
+
+        mae_mean = np.mean(mae_confidence_list, axis=0)
+        mae_std = np.std(mae_confidence_list, axis=0)
+
+        mae_mean = np.flip(mae_mean)
+        mae_std = np.flip(mae_std)
+
+        lower = mae_mean - mae_std
+        upper = mae_mean + mae_std
+
+        plt.plot(confidence_percentiles, mae_mean, label='mean')
+        plt.fill_between(confidence_percentiles, lower, upper, alpha=0.2)
+        plt.xlabel('Confidence Percentile')
+        plt.ylabel('MAE (nm)')
+        plt.ylim([0, np.max(upper) + 1])
+        plt.xlim([0, 100 * ((len(y_test) - 1) / len(y_test))])
+        plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
+        plt.show()
+        plt.savefig(TASK + '/results/gpr/confidence_curve_mae.png')

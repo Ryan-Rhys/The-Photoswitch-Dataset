@@ -76,6 +76,8 @@ if __name__ == '__main__':
     for i in range(0, 25):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
+        y_train = y_train.reshape(-1, 1)
+        y_test = y_test.reshape(-1, 1)
         X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)
 
         regr_rf = RandomForestRegressor(n_estimators=100, max_depth=30, random_state=2)

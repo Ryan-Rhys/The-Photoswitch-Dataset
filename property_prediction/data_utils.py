@@ -176,8 +176,8 @@ def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=
     X_train_scaled = x_scaler.fit_transform(X_train)
     X_test_scaled = x_scaler.transform(X_test)
     y_scaler = StandardScaler()
-    y_train_scaled = y_scaler.fit_transform(y_train.reshape(-1, 1))
-    y_test_scaled = y_scaler.transform(y_test.reshape(-1, 1))
+    y_train_scaled = y_scaler.fit_transform(y_train)
+    y_test_scaled = y_scaler.transform(y_test)
 
     if use_pca:
         pca = PCA(n_components)
