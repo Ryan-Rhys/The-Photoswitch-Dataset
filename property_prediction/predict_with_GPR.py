@@ -18,7 +18,7 @@ from kernels import Tanimoto
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv' # Change as appropriate
-TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_fragments = False
 use_pca = False
 n_trials = 500  # number of random train/test splits to use
