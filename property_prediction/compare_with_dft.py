@@ -12,7 +12,7 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from data_utils import transform_data, dft_train_test_split
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_pca = False
 
 
@@ -37,10 +37,13 @@ if __name__ == '__main__':
     X_test = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_test_mols]
     X_test = np.asarray(X_test)
 
+    y_train = y_train.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+
     X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test)
 
     regr_rf = RandomForestRegressor(n_estimators=100, max_depth=30, random_state=2)
-    regr_rf.fit(X_train, y_train)
+    regr_rf.fit(X_train, y_train.squeeze())
 
     # Predict on new data
     y_rf = regr_rf.predict(X_test)

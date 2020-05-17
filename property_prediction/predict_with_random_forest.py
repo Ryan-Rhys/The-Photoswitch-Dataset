@@ -10,8 +10,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import load_e_iso_pi_data, load_thermal_data, load_z_iso_pi_data, load_e_iso_n_data, \
-    load_z_iso_n_data, transform_data
+from data_utils import DataLoader, transform_data
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
 TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
@@ -21,18 +20,8 @@ use_pca = False
 
 if __name__ == '__main__':
 
-    if TASK == 'thermal':
-        smiles_list, y = load_thermal_data(PATH)
-    elif TASK == 'e_iso_pi':
-        smiles_list, y = load_e_iso_pi_data(PATH)
-    elif TASK == 'z_iso_pi':
-        smiles_list, y = load_z_iso_pi_data(PATH)
-    elif TASK == 'e_iso_n':
-        smiles_list, y = load_e_iso_n_data(PATH)
-    elif TASK == 'z_iso_n':
-        smiles_list, y = load_z_iso_n_data(PATH)
-    else:
-        raise Exception('Must specify a valid task')
+    data_loader = DataLoader(TASK, PATH)
+    smiles_list, y = data_loader.load_property_data()
 
     if not use_fragments:
 
@@ -76,6 +65,8 @@ if __name__ == '__main__':
     for i in range(0, 25):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
+        y_train = y_train.reshape(-1, 1)
+        y_test = y_test.reshape(-1, 1)
         X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)
 
         regr_rf = RandomForestRegressor(n_estimators=100, max_depth=30, random_state=2)
