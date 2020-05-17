@@ -5,6 +5,7 @@ Script for training a model to predict properties in the photoswitch dataset usi
 """
 
 import gpflow
+from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 from matplotlib import pyplot as plt
 import numpy as np
@@ -12,34 +13,23 @@ from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import load_e_iso_pi_data, load_e_iso_n_data, load_z_iso_n_data, \
-    load_thermal_data, load_z_iso_pi_data, transform_data
+from data_utils import transform_data, DataLoader
 from kernels import Tanimoto
 
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv' # Change as appropriate
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-use_fragments = False
-use_pca = False
-n_trials = 500  # number of random train/test splits to use
+PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
+TASK = 'z_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+use_fragments = True  # If True use RDKit fragments as opposed to Morgan fingerprints
+use_pca = False  # If True apply PCA to perform Principal Components Regression.
+n_trials = 200  # number of random train/test splits to use
 test_set_size = 0.2  # fraction of datapoints to use in the test set
-use_rmse_conf = False  # Whether to use rmse confidence or mae confidence
+use_rmse_conf = True  # Whether to use rmse confidence or mae confidence
 
 
 if __name__ == '__main__':
 
-    if TASK == 'thermal':
-        smiles_list, y = load_thermal_data(PATH)
-    elif TASK == 'e_iso_pi':
-        smiles_list, y = load_e_iso_pi_data(PATH)
-    elif TASK == 'z_iso_pi':
-        smiles_list, y = load_z_iso_pi_data(PATH)
-    elif TASK == 'e_iso_n':
-        smiles_list, y = load_e_iso_n_data(PATH)
-    elif TASK == 'z_iso_n':
-        smiles_list, y = load_z_iso_n_data(PATH)
-    else:
-        raise Exception('Must specify a valid task')
+    data_loader = DataLoader(TASK, PATH)
+    smiles_list, y = data_loader.load_property_data()
 
     if not use_fragments:
 
@@ -114,7 +104,7 @@ if __name__ == '__main__':
         X_test = X_test.astype(np.float64)
 
         k = Tanimoto()
-        m = gpflow.models.GPR(data=(X_train, y_train), kernel=k, noise_variance=1)
+        m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
         # Optimise the kernel variance and noise level by the marginal likelihood
 
@@ -173,7 +163,7 @@ if __name__ == '__main__':
 
     # Plot confidence-error curves
 
-    confidence_percentiles = np.arange(0, 100, 100/len(y_test))
+    confidence_percentiles = np.arange(1e-14, 100, 100/len(y_test))  # 1e-14 instead of 0 to stop weirdness with len(y_test) = 29
 
     if use_rmse_conf:
 
@@ -197,8 +187,8 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100*((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.show()
         plt.savefig(TASK + '/results/gpr/confidence_curve_rmse.png')
+        plt.show()
 
     else:
 
@@ -220,5 +210,5 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100 * ((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.show()
         plt.savefig(TASK + '/results/gpr/confidence_curve_mae.png')
+        plt.show()
