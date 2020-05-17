@@ -1,6 +1,6 @@
 # The Photoswitch Dataset
 
-This repository provides a curated dataset of the properties of 109 photoswitch molecules.
+This repository provides a curated dataset of the properties of 219 photoswitch molecules.
 
 # Installation
 
