@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 import umap
 import seaborn as sns
 
-from data_utils import load_e_iso_pi_data
+from property_prediction.data_utils import DataLoader
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'
@@ -19,7 +19,8 @@ use_fragments = False
 
 if __name__ == '__main__':
 
-    smiles_list, _ = load_e_iso_pi_data(PATH)
+    data_loader = DataLoader(task='thermal', path=PATH)
+    smiles_list, _ = data_loader.load_property_data()
 
     if not use_fragments:
 
