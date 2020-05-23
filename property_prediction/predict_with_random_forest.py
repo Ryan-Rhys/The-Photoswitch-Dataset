@@ -13,9 +13,11 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from data_utils import DataLoader, transform_data
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-use_fragments = False
+TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+use_fragments = True
 use_pca = False
+n_trials = 200  # number of random train/test splits to use
+test_set_size = 0.2  # fraction of datapoints to use in the test set
 
 
 if __name__ == '__main__':
@@ -62,9 +64,9 @@ if __name__ == '__main__':
     print('\nBeginning training loop...')
     j = 0  # index for saving results
 
-    for i in range(0, 25):
+    for i in range(0, n_trials):
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=i)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_set_size, random_state=i)
         y_train = y_train.reshape(-1, 1)
         y_test = y_test.reshape(-1, 1)
         X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)

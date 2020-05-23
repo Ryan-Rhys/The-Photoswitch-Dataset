@@ -18,7 +18,7 @@ from kernels import Tanimoto
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'z_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 use_fragments = True  # If True use RDKit fragments as opposed to Morgan fingerprints
 use_pca = False  # If True apply PCA to perform Principal Components Regression.
 n_trials = 200  # number of random train/test splits to use
@@ -68,8 +68,6 @@ if __name__ == '__main__':
     # We define the Gaussian Process Regression Model using the Tanimoto kernel
 
     m = None
-    k_tanimoto = Tanimoto()
-    print_summary(k_tanimoto, fmt="notebook")
 
     def objective_closure():
         return -m.log_marginal_likelihood()
@@ -104,6 +102,7 @@ if __name__ == '__main__':
         X_test = X_test.astype(np.float64)
 
         k = Tanimoto()
+        #k = gpflow.kernels.RBF(lengthscales=np.ones(num_features))
         m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
         # Optimise the kernel variance and noise level by the marginal likelihood
