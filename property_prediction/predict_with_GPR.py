@@ -9,17 +9,16 @@ from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 from matplotlib import pyplot as plt
 import numpy as np
-from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import transform_data, DataLoader
+from data_utils import transform_data, DataLoader, featurise_mols
 from kernels import Tanimoto
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
 TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-use_fragments = True  # If True use RDKit fragments as opposed to Morgan fingerprints
+representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
 use_pca = False  # If True apply PCA to perform Principal Components Regression.
 n_trials = 200  # number of random train/test splits to use
 test_set_size = 0.2  # fraction of datapoints to use in the test set
@@ -31,30 +30,12 @@ if __name__ == '__main__':
     data_loader = DataLoader(TASK, PATH)
     smiles_list, y = data_loader.load_property_data()
 
-    if not use_fragments:
-
-        feat = 'fingerprints'
-
-        rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
-        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=2048) for mol in rdkit_mols]
-        X = np.asarray(X)
-
+    if representation == 'fingerprints':
+        X = featurise_mols(smiles_list, representation)
+    elif representation == 'fragments':
+        X = featurise_mols(smiles_list, representation)
     else:
-
-        feat = 'fragments'
-
-        # descList[115:] contains fragment-based features only
-        # (https://www.rdkit.org/docs/source/rdkit.Chem.Fragments.html)
-
-        fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
-        X = np.zeros((len(smiles_list), len(fragments)))
-        for i in range(len(smiles_list)):
-            mol = MolFromSmiles(smiles_list[i])
-            try:
-                features = [fragments[d](mol) for d in fragments]
-            except:
-                raise Exception('molecule {}'.format(i) + ' is not canonicalised')
-            X[i, :] = features
+        X = featurise_mols(smiles_list, representation)
 
     # If True we perform Principal Components Regression
 
@@ -102,7 +83,6 @@ if __name__ == '__main__':
         X_test = X_test.astype(np.float64)
 
         k = Tanimoto()
-        #k = gpflow.kernels.RBF(lengthscales=np.ones(num_features))
         m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
         # Optimise the kernel variance and noise level by the marginal likelihood
@@ -134,6 +114,14 @@ if __name__ == '__main__':
             mae = mean_absolute_error(y_test[conf], y_pred[conf])
             mae_confidence_list[i, k] = mae
 
+        # Output Standardised RMSE and RMSE on Train Set
+
+        y_pred_train, _ = m.predict_f(X_train)
+        train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
+        train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
+        print("\nStandardised Train RMSE: {:.3f}".format(train_rmse_stan))
+        print("Train RMSE: {:.3f}".format(train_rmse))
+
         score = r2_score(y_test, y_pred)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         mae = mean_absolute_error(y_test, y_pred)
@@ -146,9 +134,9 @@ if __name__ == '__main__':
         rmse_list.append(rmse)
         mae_list.append(mae)
 
-        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ypred_'+feat+'.txt', y_pred)
+        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ypred_'+representation+'.txt', y_pred)
         np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ytest.txt', y_test)
-        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ystd_'+feat+'.txt', np.sqrt(y_var))
+        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ystd_'+representation+'.txt', np.sqrt(y_var))
 
         j += 1
 

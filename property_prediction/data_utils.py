@@ -6,6 +6,7 @@ module for loading data
 
 import numpy as np
 import pandas as pd
+from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -17,7 +18,6 @@ class DataLoader:
 
     def __init__(self, task, path):
         """
-
         :param task: Property prediction task to load data from:
         ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
         :param path: Path to the photoswitches csv file
@@ -78,53 +78,24 @@ class DataLoader:
 
         return smiles_list, property_vals
 
+    @staticmethod
+    def load_dft_comparison_data(dft_path):
+        """
+        Load data for the purposes of comparison with DFT. Default task is the E isomer pi-pi* transition wavelength.
+        Returns both the dft-computed values for the PBE0 level of theory and for the CAM-B3LYP levels of theory.
+        Solvent_vals are the solvents used for the measurements.
+        :param dft_path: path to the dft dataset dft_comparison.csv
+        :return: smiles_list, solvent_vals, pbe0_vals, cam_vals, experimental_vals
+        """
 
-def dft_train_test_split(path, task):
-    """
-    Load the train/test split data required for comparison against DFT.
-    :param path: path to dataset
-    :param task: string specifiying the property prediction task ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-    :return: X_train, X_test, y_train, y_test, dft_vals
-    """
+        df = pd.read_csv(dft_path)
+        smiles_list = df['SMILES'].to_list()
+        experimental_vals = df['Experiment'].to_numpy()
+        pbe0_vals = df['PBE0'].to_numpy()
+        cam_vals = df['CAM-B3LYP'].to_numpy()
+        solvent_vals = df['Solvent'].to_list()
 
-    df = pd.read_csv(path)
-    smiles_list = df['SMILES'].to_list()
-
-    if task == 'e_iso_pi':
-
-        exp_vals = df['E isomer pi-pi* wavelength in nm'].to_numpy()
-        dft_vals = df['Closest DFT E isomer pi-pi* wavelength in nm'].to_numpy()
-
-    elif task == 'z_iso_pi':
-
-        exp_vals = df['Z isomer pi-pi* wavelength in nm'].to_numpy()
-        dft_vals = df['Closest DFT Z isomer pi-pi* wavelength in nm'].to_numpy()
-
-    elif task == 'e_iso_n':
-
-        exp_vals = df['E isomer n-pi* wavelength in nm'].to_numpy()
-        dft_vals = df['Closest DFT E isomer n-pi* wavelength in nm'].to_numpy()
-
-    elif task == 'z_iso_n':
-
-        exp_vals = df['Z isomer n-pi* wavelength in nm'].to_numpy()
-        dft_vals = df['Closest DFT Z isomer n-pi* wavelength in nm'].to_numpy()
-
-    else:
-        raise Exception('Must provide a valid task')
-
-    y_train_with_missing_vals = np.delete(exp_vals, np.argwhere(~np.isnan(dft_vals)))
-    y_train = np.delete(y_train_with_missing_vals, np.argwhere(np.isnan(y_train_with_missing_vals)))
-
-    y_test = np.delete(exp_vals, np.concatenate((np.argwhere(np.isnan(dft_vals)), np.argwhere(np.isnan(exp_vals)))))
-    X_test = list(np.delete(np.array(smiles_list),
-                            np.concatenate((np.argwhere(np.isnan(dft_vals)), np.argwhere(np.isnan(exp_vals))))))
-    X_train_with_missing_vals = np.delete(np.array(smiles_list), np.argwhere(~np.isnan(dft_vals)))
-    X_train = list(np.delete(X_train_with_missing_vals, np.argwhere(np.isnan(y_train_with_missing_vals))))
-    dft_vals = np.delete(dft_vals,
-                         np.concatenate((np.argwhere(np.isnan(dft_vals)), np.argwhere(np.isnan(exp_vals)))))
-
-    return X_train, X_test, y_train, y_test, dft_vals
+        return smiles_list, solvent_vals, pbe0_vals, cam_vals, experimental_vals
 
 
 def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=False):
@@ -155,3 +126,57 @@ def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=
         X_test_scaled = pca.transform(X_test_scaled)
 
     return X_train_scaled, y_train_scaled, X_test_scaled, y_test_scaled, y_scaler
+
+
+def featurise_mols(smiles_list, representation, bond_radius=3, nBits=2048):
+    """
+    Featurise molecules according to representation
+    :param smiles_list: list of molecule SMILES
+    :param representation: str giving the representation. Can be 'fingerprints' or 'fragments'.
+    :param bond_radius: int giving the bond radius for Morgan fingerprints. Default is 3
+    :param nBits: int giving the bit vector length for Morgan fingerprints. Default is 2048
+    :return: X, the featurised molecules
+    """
+
+    if representation == 'fingerprints':
+
+        rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
+        X = [AllChem.GetMorganFingerprintAsBitVect(mol, bond_radius, nBits=nBits) for mol in rdkit_mols]
+        X = np.asarray(X)
+
+    elif representation == 'fragments':
+
+        # descList[115:] contains fragment-based features only
+        # (https://www.rdkit.org/docs/source/rdkit.Chem.Fragments.html)
+
+        fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
+        X = np.zeros((len(smiles_list), len(fragments)))
+        for i in range(len(smiles_list)):
+            mol = MolFromSmiles(smiles_list[i])
+            try:
+                features = [fragments[d](mol) for d in fragments]
+            except:
+                raise Exception('molecule {}'.format(i) + ' is not canonicalised')
+            X[i, :] = features
+
+    else:
+
+        # fragprints
+
+        rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
+        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
+        X = np.asarray(X)
+
+        fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
+        X1 = np.zeros((len(smiles_list), len(fragments)))
+        for i in range(len(smiles_list)):
+            mol = MolFromSmiles(smiles_list[i])
+            try:
+                features = [fragments[d](mol) for d in fragments]
+            except:
+                raise Exception('molecule {}'.format(i) + ' is not canonicalised')
+            X1[i, :] = features
+
+        X = np.concatenate((X, X1), axis=1)
+
+    return X
