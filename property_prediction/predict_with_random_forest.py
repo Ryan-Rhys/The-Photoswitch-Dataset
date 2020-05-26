@@ -24,12 +24,7 @@ if __name__ == '__main__':
     data_loader = DataLoader(TASK, PATH)
     smiles_list, y = data_loader.load_property_data()
 
-    if representation == 'fingerprints':
-        X = featurise_mols(smiles_list, representation)
-    elif representation == 'fragments':
-        X = featurise_mols(smiles_list, representation)
-    else:
-        X = featurise_mols(smiles_list, representation)
+    X = featurise_mols(smiles_list, representation)
 
     if use_pca:
         n_components = 50
@@ -57,7 +52,7 @@ if __name__ == '__main__':
 
         # Output Standardised RMSE and RMSE on Train Set
 
-        y_pred_train,  = regr_rf.predict(X_train)
+        y_pred_train = regr_rf.predict(X_train)
         train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
         train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
         print("\nStandardised Train RMSE: {:.3f}".format(train_rmse_stan))

@@ -17,7 +17,7 @@ from kernels import Tanimoto
 
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
 use_pca = False  # If True apply PCA to perform Principal Components Regression.
 n_trials = 200  # number of random train/test splits to use
@@ -30,12 +30,7 @@ if __name__ == '__main__':
     data_loader = DataLoader(TASK, PATH)
     smiles_list, y = data_loader.load_property_data()
 
-    if representation == 'fingerprints':
-        X = featurise_mols(smiles_list, representation)
-    elif representation == 'fragments':
-        X = featurise_mols(smiles_list, representation)
-    else:
-        X = featurise_mols(smiles_list, representation)
+    X = featurise_mols(smiles_list, representation)
 
     # If True we perform Principal Components Regression
 
