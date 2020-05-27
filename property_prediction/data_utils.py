@@ -97,6 +97,24 @@ class DataLoader:
 
         return smiles_list, solvent_vals, pbe0_vals, cam_vals, experimental_vals
 
+    @staticmethod
+    def load_large_comparison_data(large_path):
+        """
+        Load electronic transition wavelengths for E isomer pi-pi* transitions from a large dataset of 8489 molecules.
+        TD-DFT computations employed the LRC-wPBEh functional and 6–311 + G* data sets.
+        :param large_path: str giving the path to the large dataset paper_allDB.csv from:
+               https://www.nature.com/articles/s41597-019-0306-0
+        :return: smiles_list, experiment_vals, dft_vals
+        """
+
+        df = pd.read_csv(large_path)
+        smiles_list = df['SMILES'].to_list()
+        experimental_vals = df['Experiment'].to_numpy()
+        smiles_list = list(np.delete(np.array(smiles_list), np.argwhere(np.isnan(experimental_vals))))
+        experimental_vals = np.delete(experimental_vals, np.argwhere(np.isnan(experimental_vals)))
+
+        return smiles_list, experimental_vals
+
 
 def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=False):
     """

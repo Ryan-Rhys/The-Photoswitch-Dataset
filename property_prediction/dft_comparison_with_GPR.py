@@ -29,13 +29,7 @@ if __name__ == '__main__':
     data_loader = DataLoader(TASK, PATH)
     smiles_list, _, pbe0_vals, cam_vals, experimental_vals = data_loader.load_dft_comparison_data(DFT_PATH)
 
-    if representation == 'fingerprints':
-        X = featurise_mols(smiles_list, representation)
-    elif representation == 'fragments':
-        X = featurise_mols(smiles_list, representation)
-    else:
-        # use fragprints as the representation
-        X = featurise_mols(smiles_list, representation)
+    X = featurise_mols(smiles_list, representation)
 
     # Keep only non-duplicate entries because we're not considering effects of solvent
 
