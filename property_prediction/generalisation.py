@@ -1,7 +1,7 @@
 # Author: Ryan-Rhys Griffiths
 """
 Script to test generalisation performance of a model trained on the E isomer pi-pi* transition wavelengths of a large
-dataset of 6,142 molecules to the photoswitch dataset.
+dataset of 6,142 molecules. Generalisation performance is gauged relative to the full photoswitch dataset.
 """
 
 import numpy as np
