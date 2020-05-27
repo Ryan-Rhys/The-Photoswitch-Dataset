@@ -1,4 +1,3 @@
-# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
 """
 Property prediction comparison against DFT error as of 24th May 2020 there are 141 molecules with DFT-computed values
@@ -12,7 +11,7 @@ import numpy as np
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
 
-from data_utils import transform_data, DataLoader, featurise_mols
+from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
@@ -26,7 +25,7 @@ test_set_size = 0.2
 
 if __name__ == '__main__':
 
-    data_loader = DataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(TASK, PATH)
     smiles_list, _, pbe0_vals, cam_vals, experimental_vals = data_loader.load_dft_comparison_data(DFT_PATH)
 
     X = featurise_mols(smiles_list, representation)

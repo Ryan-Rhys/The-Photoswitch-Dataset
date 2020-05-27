@@ -9,18 +9,20 @@ We recommend using a virtual environment to run the property prediction scripts.
 ```
 conda create -n photoswitch python=3.7
 
-conda install scikit-learn==0.22.1
+conda install -c conda-forge rdkit
 
-conda install rdkit==2019.09.2
-
-conda install umap-learn seaborn xlrd matplotlib ipython pytest
+conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-learn
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
+
+pip install dgllife
+
+pip install dgl
 ```
 
 # What we provide
 
-The dataset includes molecular properties for 109 photoswitch molecules. 
+The dataset includes molecular properties for 323 photoswitch molecules. 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
 
