@@ -11,7 +11,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 
-class DataLoader:
+class TaskDataLoader:
     """
     Data loader class
     """

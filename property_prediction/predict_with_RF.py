@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import DataLoader, transform_data, featurise_mols
+from data_utils import TaskDataLoader, transform_data, featurise_mols
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
 TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
@@ -21,7 +21,7 @@ test_set_size = 0.2  # fraction of datapoints to use in the test set
 
 if __name__ == '__main__':
 
-    data_loader = DataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(TASK, PATH)
     smiles_list, y = data_loader.load_property_data()
 
     X = featurise_mols(smiles_list, representation)

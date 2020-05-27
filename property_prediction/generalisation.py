@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import DataLoader, transform_data, featurise_mols
+from data_utils import TaskDataLoader, transform_data, featurise_mols
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
 LARGE_PATH = '~/ml_physics/Photoswitches/dataset/paper_allDB.csv'
@@ -19,7 +19,7 @@ test_set_size = 0.  # fraction of datapoints to use in the test set
 
 if __name__ == '__main__':
 
-    data_loader = DataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(TASK, PATH)
 
     test_smiles_list, y_test = data_loader.load_property_data()
     large_smiles_list, y_train = data_loader.load_large_comparison_data(LARGE_PATH)

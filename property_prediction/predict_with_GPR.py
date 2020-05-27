@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-from data_utils import transform_data, DataLoader, featurise_mols
+from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
 
@@ -27,9 +27,8 @@ use_rmse_conf = True  # Whether to use rmse confidence or mae confidence
 
 if __name__ == '__main__':
 
-    data_loader = DataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(TASK, PATH)
     smiles_list, y = data_loader.load_property_data()
-
     X = featurise_mols(smiles_list, representation)
 
     # If True we perform Principal Components Regression
