@@ -1,0 +1,20 @@
+
+ Representation = fragprints
+ Task = z_iso_n
+ Use PCA? = True
+ Number of trials = 50 
+
+ Deterministic encoder hidden size = 32
+ Deterministic encoder number of layers = 2
+ Latent encoder hidden size = 32
+ Latent encoder number of layers = 2
+ Decoder hidden size = 32
+ Decoder number of layers = 2
+ Latent variable size = 8
+ Batch size = 10
+ Learning rate = 0.001
+ Number of iterations = 500 
+
+mean R^2: 0.3574 +- 0.0373
+mean RMSE: 11.1904 +- 0.4528
+mean MAE: 7.0437 +- 0.2778
