@@ -14,8 +14,8 @@ from sklearn.model_selection import train_test_split
 from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-DFT_PATH = '~/ml_physics/Photoswitches/dataset/dft_comparison.csv'  # Change as appropriate
+PATH = '../dataset/photoswitches.csv'  # Change as appropriate
+DFT_PATH = '../dataset/dft_comparison.csv'  # Change as appropriate
 TASK = 'e_iso_pi'  # e_iso_pi only task supported for DFT comparison
 use_pca = False
 representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
