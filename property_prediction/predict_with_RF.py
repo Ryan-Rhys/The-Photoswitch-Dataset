@@ -13,9 +13,9 @@ from data_utils import TaskDataLoader, transform_data, featurise_mols
 
 PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
 TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-representation = 'fragments'  # ['fingerprints, 'fragments', 'fragprints']
+representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
 use_pca = False
-n_trials = 200  # number of random train/test splits to use
+n_trials = 20  # number of random train/test splits to use
 test_set_size = 0.2  # fraction of datapoints to use in the test set
 
 

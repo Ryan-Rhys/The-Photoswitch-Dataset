@@ -131,8 +131,8 @@ def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=
     """
 
     x_scaler = StandardScaler()
-    #X_train_scaled = x_scaler.fit_transform(X_train)
-    #X_test_scaled = x_scaler.transform(X_test)
+    X_train_scaled = x_scaler.fit_transform(X_train)
+    X_test_scaled = x_scaler.transform(X_test)
     y_scaler = StandardScaler()
     y_train_scaled = y_scaler.fit_transform(y_train)
     y_test_scaled = y_scaler.transform(y_test)
@@ -182,7 +182,7 @@ def featurise_mols(smiles_list, representation, bond_radius=3, nBits=2048):
         # fragprints
 
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
-        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
+        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=2048) for mol in rdkit_mols]
         X = np.asarray(X)
 
         fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
