@@ -139,9 +139,9 @@ def transform_data(X_train, y_train, X_test, y_test, n_components=None, use_pca=
 
     if use_pca:
         pca = PCA(n_components)
-        X_train_scaled = pca.fit_transform(X_train_scaled)
+        X_train_scaled = pca.fit_transform(X_train)
         print('Fraction of variance retained is: ' + str(sum(pca.explained_variance_ratio_)))
-        X_test_scaled = pca.transform(X_test_scaled)
+        X_test_scaled = pca.transform(X_test)
 
     return X_train_scaled, y_train_scaled, X_test_scaled, y_test_scaled, y_scaler
 
@@ -182,7 +182,7 @@ def featurise_mols(smiles_list, representation, bond_radius=3, nBits=2048):
         # fragprints
 
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
-        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=512) for mol in rdkit_mols]
+        X = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=2048) for mol in rdkit_mols]
         X = np.asarray(X)
 
         fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
