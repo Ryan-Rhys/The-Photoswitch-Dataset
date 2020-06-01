@@ -1,10 +1,10 @@
 # The Photoswitch Dataset
 
-<p align="left">
+This repository provides a curated dataset of the properties of 405 photoswitch molecules as well as a property prediction benchmark 
+
+<p align="center">
   <img src="photoswitch-logo.png" width="500" title="logo">
 </p>
-
-This repository provides a curated dataset of the properties of 405 photoswitch molecules.
 
 # Installation
 
