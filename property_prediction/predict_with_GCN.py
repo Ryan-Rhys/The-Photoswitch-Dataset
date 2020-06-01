@@ -25,7 +25,7 @@ else:
     print('use CPU')
     device = 'cpu'
 
-TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 PATH = '../dataset/photoswitches.csv'  # Change as appropriate
 GRAPH_TYPE = 'bigraph'  # ['bigraph', 'complete']
 n_trials = 20
