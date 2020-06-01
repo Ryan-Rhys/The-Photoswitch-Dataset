@@ -25,7 +25,7 @@ else:
     print('use CPU')
     device = 'cpu'
 
-TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 PATH = '../dataset/photoswitches.csv'  # Change as appropriate
 n_trials = 20
 test_set_size = 0.2
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         for i, (bg, labels) in enumerate(test_loader):
             labels = labels.to(device)
             atom_feats = bg.ndata.pop('h').to(device)
-            bond_feats = bg.edata.pop('e'.to(device))
+            bond_feats = bg.edata.pop('e').to(device)
             atom_feats, bond_feats, labels = atom_feats.to(device), bond_feats.to(device), labels.to(device)
             y_pred = mpnn_net(bg, atom_feats, bond_feats)
             labels = labels.unsqueeze(dim=1)
@@ -167,6 +167,10 @@ if __name__ == '__main__':
         mae = mean_absolute_error(preds, labs)
         rmse = np.sqrt(mean_squared_error(preds, labs))
         r2 = r2_score(preds, labs)
+
+        r2_list.append(r2)
+        rmse_list.append(rmse)
+        mae_list.append(mae)
 
         print(f'Test RMSE: {rmse:.3f}, MAE: {mae:.3f}, R: {pearson:.3f}, R2: {r2:.3f}')
 

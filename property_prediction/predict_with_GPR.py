@@ -17,10 +17,10 @@ from kernels import Tanimoto
 
 
 PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'e_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 representation = 'fingerprints'  # ['fingerprints, 'fragments', 'fragprints']
 use_pca = False  # If True apply PCA to perform Principal Components Regression.
-n_trials = 20  # number of random train/test splits to use
+n_trials = 100  # number of random train/test splits to use
 test_set_size = 0.2  # fraction of datapoints to use in the test set
 use_rmse_conf = True  # Whether to use rmse confidence or mae confidence
 

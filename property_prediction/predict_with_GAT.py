@@ -25,7 +25,7 @@ else:
     print('use CPU')
     device = 'cpu'
 
-TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 PATH = '../dataset/photoswitches.csv'  # Change as appropriate
 n_trials = 20
 test_set_size = 0.2
@@ -166,6 +166,10 @@ if __name__ == '__main__':
         mae = mean_absolute_error(preds, labs)
         rmse = np.sqrt(mean_squared_error(preds, labs))
         r2 = r2_score(preds, labs)
+
+        r2_list.append(r2)
+        rmse_list.append(rmse)
+        mae_list.append(mae)
 
         print(f'Test RMSE: {rmse:.3f}, MAE: {mae:.3f}, R: {pearson:.3f}, R2: {r2:.3f}')
 

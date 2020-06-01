@@ -1,6 +1,10 @@
 # The Photoswitch Dataset
 
-This repository provides a curated dataset of the properties of 323 photoswitch molecules.
+<p align="left">
+  <img src="photoswitch-logo.png" width="500" title="logo">
+</p>
+
+This repository provides a curated dataset of the properties of 405 photoswitch molecules.
 
 # Installation
 
@@ -22,7 +26,7 @@ pip install dgl
 
 # What we provide
 
-The dataset includes molecular properties for 323 photoswitch molecules. 
+The dataset includes molecular properties for 405 photoswitch molecules. 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
 
