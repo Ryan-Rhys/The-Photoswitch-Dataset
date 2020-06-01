@@ -1,6 +1,8 @@
 # The Photoswitch Dataset
 
-This repository provides a curated dataset of the properties of 405 photoswitch molecules as well as a property prediction benchmark 
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+This repository provides benchmarked property prediction results on a curated dataset of 405 photoswitch molecules. 
 
 <p align="center">
   <img src="photoswitch-logo.png" width="500" title="logo">
