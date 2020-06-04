@@ -18,7 +18,7 @@ LARGE_PATH = '~/ml_physics/Photoswitches/dataset/paper_allDB.csv'
 TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
 representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
 test_set_size = 0.2  # fraction of datapoints to use in the test set
-augment_photo_dataset = True  # If True augment the photoswitch dataset with the Beard et al. 2019 dataset
+augment_photo_dataset = False  # If True augment the photoswitch dataset with the Beard et al. 2019 dataset
 n_trials = 20  # number of random trials
 
 
