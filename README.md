@@ -5,7 +5,7 @@
 This repository provides benchmarked property prediction results on a curated dataset of 405 photoswitch molecules. 
 
 <p align="center">
-  <img src="photoswitch-logo.png" width="500" title="logo">
+  <img src="photoswitch_logo.png" width="500" title="logo">
 </p>
 
 # Installation

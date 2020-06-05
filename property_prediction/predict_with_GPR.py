@@ -17,10 +17,10 @@ from kernels import Tanimoto
 
 
 PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'e_iso_pi'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
+TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+representation = 'fragments'  # ['fingerprints, 'fragments', 'fragprints']
 use_pca = False  # If True apply PCA to perform Principal Components Regression.
-n_trials = 20  # number of random train/test splits to use
+n_trials = 200  # number of random train/test splits to use
 test_set_size = 0.2  # fraction of datapoints to use in the test set
 use_rmse_conf = True  # Whether to use rmse confidence or mae confidence
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100*((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.savefig(TASK + '/results/gpr/confidence_curve_rmse.png')
+        plt.savefig(TASK + '/results/gpr/{}_confidence_curve_rmse.png'.format(representation))
         plt.show()
 
     else:
@@ -191,5 +191,5 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100 * ((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.savefig(TASK + '/results/gpr/confidence_curve_mae.png')
+        plt.savefig(TASK + '/results/gpr/{}_confidence_curve_mae.png'.format(representation))
         plt.show()
