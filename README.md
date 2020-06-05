@@ -47,8 +47,7 @@ has a maxima for the stated isomer. Measurements are carried out in solution wit
 **DFT-computed pi-pi-star/n-pi-star wavelengths** (units = nanometers): DFT-computed wavelengths at which the
 pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
 
-**Extinction coefficient**: See “D. W. Ball, Field Guide to Spectroscopy, SPIE Press, Bellingham, WA (2006)” 
-for an introduction into the Beer-Lambert Law and its applications in photochemistry.
+**Extinction coefficient**: The molar extinction coefficient.
 
 **Wiberg Index**: A measure of the bond order of the N=N bond in an azophotoswitch. Bond order is a measure of the 
 ‘strength’ of said chemical bond. This value is computed theoretically.
