@@ -3,6 +3,8 @@
 Property prediction using the Graph Convolutional Network.
 """
 
+import argparse
+
 import dgl
 import numpy as np
 import torch
@@ -25,15 +27,17 @@ else:
     print('use CPU')
     device = 'cpu'
 
-TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-GRAPH_TYPE = 'bigraph'  # ['bigraph', 'complete']
-n_trials = 20
-test_set_size = 0.2
 
-if __name__ == '__main__':
+def main(path, task, graph_type, n_trials, test_set_size):
+    """
+    :param path: str specifying path to dataset.
+    :param task: str specifying the task. One of ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+    :param graph_type: str. either 'bigraph' or 'complete'
+    :param n_trials: int specifying number of random train/test splits to use
+    :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set
+    """
 
-    data_loader = TaskDataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(task, path)
     smiles_list, y = data_loader.load_property_data()
     X = [Chem.MolFromSmiles(m) for m in smiles_list]
 
@@ -51,9 +55,9 @@ if __name__ == '__main__':
     print('Number of features: ', n_feats)
 
     # Create graphs and labels
-    if GRAPH_TYPE == 'complete':
+    if graph_type == 'complete':
         X = [mol_to_complete_graph(m, node_featurizer=atom_featurizer) for m in X]
-    elif GRAPH_TYPE == 'bigraph':
+    elif graph_type == 'bigraph':
         X = [mol_to_bigraph(m, node_featurizer=atom_featurizer) for m in X]
 
     r2_list = []
@@ -95,11 +99,8 @@ if __name__ == '__main__':
 
         epoch_losses = []
         epoch_rmses = []
-        epoch_pears = []
-        #epoch_accuracies = []
         for epoch in range(1, 501):
             epoch_loss = 0
-            epoch_rmse = 0
             preds = []
             labs = []
             for i, (bg, labels) in enumerate(train_loader):
@@ -130,7 +131,12 @@ if __name__ == '__main__':
 
             epoch_loss /= (i + 1)
             if epoch % 20 == 0:
-                print(f"epoch: {epoch}, LOSS: {epoch_loss:.3f}, RMSE: {rmse:.3f}, MAE: {mae:.3f}, R: {pearson:.3f}, R2: {r2:.3f}")
+                print(f"epoch: {epoch}, "
+                      f"LOSS: {epoch_loss:.3f}, "
+                      f"RMSE: {rmse:.3f}, "
+                      f"MAE: {mae:.3f}, "
+                      f"R: {pearson:.3f}, "
+                      f"R2: {r2:.3f}")
             epoch_losses.append(epoch_loss)
             epoch_rmses.append(rmse)
 
@@ -143,8 +149,6 @@ if __name__ == '__main__':
 
         # Evaluate
         gcn_net.eval()
-        test_loss = 0
-        squared_errors = []
         preds = []
         labs = []
         for i, (bg, labels) in enumerate(test_loader):
@@ -183,3 +187,23 @@ if __name__ == '__main__':
     print("mean RMSE: {:.4f} +- {:.4f}".format(np.mean(rmse_list), np.std(rmse_list)/np.sqrt(len(rmse_list))))
     print("mean MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
     print("\nSkipped trials is {}".format(skipped_trials))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
+                        help='Path to the photoswitches.csv file.')
+    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+                        help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
+    parser.add_argument('-g', '--graph_type', type=str, default='bigraph',
+                        help='The type of graph to use. Either bigraph or complete')
+    parser.add_argument('-n', '--n_trials', type=int, default=20,
+                        help='int specifying number of random train/test splits to use')
+    parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
+                        help='float in range [0, 1] specifying fraction of dataset to use as test set')
+
+    args = parser.parse_args()
+
+    main(args.path, args.task, args.graph_type, args.n_trials, args.test_set_size)

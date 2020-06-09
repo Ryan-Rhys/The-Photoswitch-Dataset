@@ -1,10 +1,12 @@
 # Author: Ryan-Rhys Griffiths
 """
-Script to test generalisation performance of a model trained on the E isomer pi-pi* transition wavelengths of a large
+Script to test generalization performance of a model trained on the E isomer pi-pi* transition wavelengths of a large
 dataset of 6,142 molecules from Beard et al. 2019 https://www.nature.com/articles/s41597-019-0306-0
-Generalisation performance is gauged relative to the full photoswitch dataset. We also test generalisation performance
+Generalisation performance is gauged relative to the full photoswitch dataset. We also test generalization performance
 when this dataset is leveraged as additional training data.
 """
+
+import argparse
 
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -13,21 +15,22 @@ from sklearn.model_selection import train_test_split
 
 from data_utils import TaskDataLoader, transform_data, featurise_mols
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-LARGE_PATH = '~/ml_physics/Photoswitches/dataset/paper_allDB.csv'
-TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
-test_set_size = 0.2  # fraction of datapoints to use in the test set
-augment_photo_dataset = False  # If True augment the photoswitch dataset with the Beard et al. 2019 dataset
-n_trials = 20  # number of random trials
 
+def main(path, path_to_large_dataset, task, representation, test_set_size, augment_photo_dataset, n_trials):
+    """
+    :param path: str giving path to the photoswitches.csv file.
+    :param path_to_large_dataset: str giving path to paper_allDB.csv file
+    :param task: str specifying the task. Always e_iso_pi for the generalization experiment
+    :param representation: str specifying the molecular representation. One of [fingerprints, fragments, fragprints].'
+    :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set
+    :param augment_photo_dataset: If True augment the photoswitch dataset with the Beard et al. 2019 dataset
+    :param n_trials: int specifying the number of random train/test splits.
+    """
 
-if __name__ == '__main__':
-
-    data_loader = TaskDataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(task, path)
 
     photo_smiles_list, y_vals_photo = data_loader.load_property_data()
-    beard_smiles_list, y_vals_beard = data_loader.load_large_comparison_data(LARGE_PATH)
+    beard_smiles_list, y_vals_beard = data_loader.load_large_comparison_data(path_to_large_dataset)
 
     r2_list = []
     rmse_list = []
@@ -90,3 +93,30 @@ if __name__ == '__main__':
     print("\nmean R^2: {:.4f} +- {:.4f}".format(np.mean(r2_list), np.std(r2_list) / np.sqrt(len(r2_list))))
     print("mean RMSE: {:.4f} +- {:.4f}".format(np.mean(rmse_list), np.std(rmse_list) / np.sqrt(len(rmse_list))))
     print("mean MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list) / np.sqrt(len(mae_list))))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
+                        help='Path to the photoswitches.csv file.')
+    parser.add_argument('-pl', '--path_to_large_dataset', type=str, default='../dataset/paper_allDB.csv',
+                        help='str giving path to paper_allDB.csv file')
+    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+                        help='str specifying the task. Always e_iso_pi in the case of the '
+                             'generalization error experiment')
+    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+                        help='str specifying the molecular representation. '
+                             'One of [fingerprints, fragments, fragprints].')
+    parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
+                        help='float in range [0, 1] specifying fraction of dataset to use as test set')
+    parser.add_argument('-au', '--augment_photo_dataset', type=bool, default=False,
+                        help='If True augment the photoswitch dataset with the Beard et al. 2019 dataset.')
+    parser.add_argument('-n', '--n_trials', type=int, default=20,
+                        help='int specifying number of random train/test splits to use')
+
+    args = parser.parse_args()
+
+    main(args.path, args.path_to_large_dataset, args.task, args.representation, args.test_set_size,
+         args.augment_photo_dataset, args.n_trials,)
