@@ -1,0 +1,20 @@
+
+ Representation = fragments
+ Task = e_iso_n
+ Use PCA? = True
+ Number of trials = 50 
+
+ Deterministic encoder hidden size = 32
+ Deterministic encoder number of layers = 2
+ Latent encoder hidden size = 32
+ Latent encoder number of layers = 2
+ Decoder hidden size = 32
+ Decoder number of layers = 2
+ Latent variable size = 8
+ Batch size = 10
+ Learning rate = 0.001
+ Number of iterations = 500 
+
+mean R^2: 0.5702 +- 0.0346
+mean RMSE: 14.1810 +- 0.5053
+mean MAE: 9.7410 +- 0.2445

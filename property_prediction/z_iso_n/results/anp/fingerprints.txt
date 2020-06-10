@@ -1,0 +1,20 @@
+
+ Representation = fingerprints
+ Task = z_iso_n
+ Use PCA? = True
+ Number of trials = 50 
+
+ Deterministic encoder hidden size = 32
+ Deterministic encoder number of layers = 2
+ Latent encoder hidden size = 32
+ Latent encoder number of layers = 2
+ Decoder hidden size = 32
+ Decoder number of layers = 2
+ Latent variable size = 8
+ Batch size = 10
+ Learning rate = 0.001
+ Number of iterations = 500 
+
+mean R^2: 0.3706 +- 0.0298
+mean RMSE: 11.1689 +- 0.4186
+mean MAE: 7.2662 +- 0.2370
