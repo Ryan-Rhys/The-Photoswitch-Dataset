@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-from anp_scripts.attention import MultiHeadAttention
+from Attentive_NP.attention import MultiHeadAttention
 
 
 class LatentEncoder(nn.Module):

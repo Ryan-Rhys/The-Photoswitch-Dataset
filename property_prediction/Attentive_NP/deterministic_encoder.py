@@ -3,13 +3,11 @@ Function for deterministically encoding context points (x, y)_i using a fully co
 Input = (x, y)_i; output = r_i.
 """
 
-import pdb
-
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
-from anp_scripts.attention import *
+from Attentive_NP.attention import dot_product_attention, uniform_attention, laplace_attention, MultiHeadAttention
 
 
 class DeterministicEncoder(nn.Module):
@@ -37,7 +35,6 @@ class DeterministicEncoder(nn.Module):
         self.self_att = self_att
         self.cross_att = cross_att
         self.attention_type = attention_type
-
 
         self.fcs = nn.ModuleList()
         for i in range(self.n_hidden + 1):
@@ -117,7 +114,6 @@ class DeterministicEncoder(nn.Module):
         keys = self.key_transform[-1](keys)  # [batch_size, N_context, hidden_size]
         queries = queries.view(batch_size, -1, self.hidden_size)
         keys = keys.view(batch_size, -1, self.hidden_size)
-
 
         if self.attention_type == "multihead":
             output = self.cross_attention.forward(queries=queries.float(), keys=keys.float(),
