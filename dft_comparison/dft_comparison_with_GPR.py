@@ -4,6 +4,8 @@ Property prediction comparison against DFT error as of 99 molecules with DFT-com
 theory and 114 molecules with DFT-computed values at the PBE0 level of theory.
 """
 
+import argparse
+
 import gpflow
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
@@ -13,18 +15,18 @@ from sklearn.metrics import mean_squared_error
 from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
-PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-DFT_PATH = '../dataset/dft_comparison.csv'  # Change as appropriate
-TASK = 'e_iso_pi'  # e_iso_pi only task supported for DFT comparison
-representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
-test_set_size = 0.2
-theory_level = 'CAM-B3LYP'  # level of theory to compare against - CAM-B3LYP or PBE0 ['CAM-B3LYP', 'PBE0']
 
+def main(path, path_to_dft_dataset, task, representation, theory_level):
+    """
+    :param path: str specifying path to photoswitches.csv file.
+    :param path_to_dft_dataset: str specifying path to dft_comparison.csv file.
+    :param task: str specifying the task. e_iso_pi only supported task for the TD-DFT comparison.
+    :param representation: str specifying the molecular representation. One of ['fingerprints, 'fragments', 'fragprints']
+    :param theory_level: str giving the level of theory to compare against - CAM-B3LYP or PBE0 ['CAM-B3LYP', 'PBE0']
+    """
 
-if __name__ == '__main__':
-
-    data_loader = TaskDataLoader(TASK, PATH)
-    smiles_list, _, pbe0_vals, cam_vals, experimental_vals = data_loader.load_dft_comparison_data(DFT_PATH)
+    data_loader = TaskDataLoader(task, path)
+    smiles_list, _, pbe0_vals, cam_vals, experimental_vals = data_loader.load_dft_comparison_data(path_to_dft_dataset)
 
     X = featurise_mols(smiles_list, representation)
 
@@ -133,3 +135,24 @@ if __name__ == '__main__':
     print("\nmean GP-Tanimoto MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
 
     print("mean {} MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mae_list), np.std(dft_mae_list)/np.sqrt(len(dft_mae_list))))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
+                        help='Path to the photoswitches.csv file.')
+    parser.add_argument('-pd', '--path_to_dft_dataset', type=str, default='../dataset/dft_comparison.csv',
+                        help='str giving path to dft_comparison.csv file')
+    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+                        help='str specifying the task. e_iso_pi only task supported for the TD-DFT comparison.')
+    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+                        help='str specifying the molecular representation. '
+                             'One of [fingerprints, fragments, fragprints].')
+    parser.add_argument('-th', '--theory_level', type=str, default='CAM-B3LYP',
+                        help='level of theory to compare against - CAM-B3LYP or PBE0 [CAM-B3LYP, PBE0]')
+
+    args = parser.parse_args()
+
+    main(args.path, args.path_to_dft_dataset, args.task, args.representation, args.theory_level)

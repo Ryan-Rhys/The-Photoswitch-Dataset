@@ -4,6 +4,8 @@
 Property prediction on the photoswitch dataset using Random Forest.
 """
 
+import argparse
+
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
@@ -11,17 +13,18 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 from data_utils import TaskDataLoader, transform_data, featurise_mols
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'e_iso_pi'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-representation = 'fragprints'  # ['fingerprints, 'fragments', 'fragprints']
-use_pca = False
-n_trials = 20  # number of random train/test splits to use
-test_set_size = 0.2  # fraction of datapoints to use in the test set
 
+def main(path, task, representation, use_pca, n_trials, test_set_size):
+    """
+    :param path: str specifying path to dataset.
+    :param task: str specifying the task. One of ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+    :param representation: str specifying the molecular representation. One of ['fingerprints, 'fragments', 'fragprints']
+    :param use_pca: bool. If True apply PCA to perform Principal Components Regression.
+    :param n_trials: int specifying number of random train/test splits to use
+    :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set.
+    """
 
-if __name__ == '__main__':
-
-    data_loader = TaskDataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(task, path)
     smiles_list, y = data_loader.load_property_data()
 
     X = featurise_mols(smiles_list, representation)
@@ -31,14 +34,11 @@ if __name__ == '__main__':
     else:
         n_components = None
 
-    num_features = np.shape(X)[1]
-
     r2_list = []
     rmse_list = []
     mae_list = []
 
     print('\nBeginning training loop...')
-    j = 0  # index for saving results
 
     for i in range(0, n_trials):
 
@@ -74,14 +74,32 @@ if __name__ == '__main__':
         rmse_list.append(rmse)
         mae_list.append(mae)
 
-        np.savetxt(TASK + '/results/random_forest/_seed_'+str(j)+'_ypred_'+representation+'.txt', y_rf)
-        np.savetxt(TASK + '/results/random_forest/_seed_'+str(j)+'_ytest.txt', y_test)
-
-        j += 1
-
     r2_list = np.array(r2_list)
     rmse_list = np.array(rmse_list)
     mae_list = np.array(mae_list)
     print("\nmean R^2: {:.4f} +- {:.4f}".format(np.mean(r2_list), np.std(r2_list)/np.sqrt(len(r2_list))))
     print("mean RMSE: {:.4f} +- {:.4f}".format(np.mean(rmse_list), np.std(rmse_list)/np.sqrt(len(rmse_list))))
     print("mean MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
+                        help='Path to the photoswitches.csv file.')
+    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+                        help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
+    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+                        help='str specifying the molecular representation. '
+                             'One of [fingerprints, fragments, fragprints].')
+    parser.add_argument('-pca', '--use_pca', type=bool, default=False,
+                        help='If True apply PCA to perform Principal Components Regression.')
+    parser.add_argument('-n', '--n_trials', type=int, default=20,
+                        help='int specifying number of random train/test splits to use')
+    parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
+                        help='float in range [0, 1] specifying fraction of dataset to use as test set')
+
+    args = parser.parse_args()
+
+    main(args.path, args.task, args.representation, args.use_pca, args.n_trials, args.test_set_size)

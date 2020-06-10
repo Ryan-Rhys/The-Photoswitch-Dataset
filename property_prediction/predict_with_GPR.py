@@ -4,6 +4,8 @@
 Script for training a model to predict properties in the photoswitch dataset using Gaussian Process Regression.
 """
 
+import argparse
+
 import gpflow
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
@@ -16,18 +18,19 @@ from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
 
-PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-TASK = 'z_iso_n'  # ['thermal', 'e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-representation = 'fragments'  # ['fingerprints, 'fragments', 'fragprints']
-use_pca = False  # If True apply PCA to perform Principal Components Regression.
-n_trials = 200  # number of random train/test splits to use
-test_set_size = 0.2  # fraction of datapoints to use in the test set
-use_rmse_conf = True  # Whether to use rmse confidence or mae confidence
+def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_conf):
+    """
+    :param path: str specifying path to dataset.
+    :param task: str specifying the task. One of ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
+    :param representation: str specifying the molecular representation. One of ['fingerprints, 'fragments', 'fragprints']
+    :param use_pca: bool. If True apply PCA to perform Principal Components Regression.
+    :param n_trials: int specifying number of random train/test splits to use
+    :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set
+    :param use_rmse_conf: bool specifying wheter to compute the rmse confidence-error curves or the mae confidence-
+    error curves. True is the option for rmse.
+    """
 
-
-if __name__ == '__main__':
-
-    data_loader = TaskDataLoader(TASK, PATH)
+    data_loader = TaskDataLoader(task, path)
     smiles_list, y = data_loader.load_property_data()
     X = featurise_mols(smiles_list, representation)
 
@@ -60,7 +63,6 @@ if __name__ == '__main__':
     mae_confidence_list = np.zeros((n_trials, n_test))
 
     print('\nBeginning training loop...')
-    j = 0  # index for saving results
 
     for i in range(0, n_trials):
 
@@ -128,12 +130,6 @@ if __name__ == '__main__':
         rmse_list.append(rmse)
         mae_list.append(mae)
 
-        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ypred_'+representation+'.txt', y_pred)
-        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ytest.txt', y_test)
-        np.savetxt(TASK + '/results/gpr/_seed_'+str(j)+'_ystd_'+representation+'.txt', np.sqrt(y_var))
-
-        j += 1
-
     r2_list = np.array(r2_list)
     rmse_list = np.array(rmse_list)
     mae_list = np.array(mae_list)
@@ -168,7 +164,7 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100*((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.savefig(TASK + '/results/gpr/{}_confidence_curve_rmse.png'.format(representation))
+        plt.savefig(task + '/results/gpr/{}_confidence_curve_rmse.png'.format(representation))
         plt.show()
 
     else:
@@ -191,5 +187,31 @@ if __name__ == '__main__':
         plt.ylim([0, np.max(upper) + 1])
         plt.xlim([0, 100 * ((len(y_test) - 1) / len(y_test))])
         plt.yticks(np.arange(0, np.max(upper) + 1, 5.0))
-        plt.savefig(TASK + '/results/gpr/{}_confidence_curve_mae.png'.format(representation))
+        plt.savefig(task + '/results/gpr/{}_confidence_curve_mae.png'.format(representation))
         plt.show()
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
+                        help='Path to the photoswitches.csv file.')
+    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+                        help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
+    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+                        help='str specifying the molecular representation. '
+                             'One of [fingerprints, fragments, fragprints].')
+    parser.add_argument('-pca', '--use_pca', type=bool, default=False,
+                        help='If True apply PCA to perform Principal Components Regression.')
+    parser.add_argument('-n', '--n_trials', type=int, default=20,
+                        help='int specifying number of random train/test splits to use')
+    parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
+                        help='float in range [0, 1] specifying fraction of dataset to use as test set')
+    parser.add_argument('-rms', '--use_rmse_conf', type=bool, default=True,
+                        help='bool specifying wheter to compute the rmse confidence-error curves or the mae '
+                             'confidence-error curves. True is the option for rmse.')
+
+    args = parser.parse_args()
+
+    main(args.path, args.task, args.representation, args.use_pca, args.n_trials, args.test_set_size, args.use_rmse_conf)

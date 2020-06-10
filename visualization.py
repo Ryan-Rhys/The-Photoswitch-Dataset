@@ -1,5 +1,8 @@
 # Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
+"""
+Script to perform data vizualisation
+"""
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -10,16 +13,16 @@ from sklearn.preprocessing import StandardScaler
 import umap
 import seaborn as sns
 
-from property_prediction.data_utils import DataLoader
+from property_prediction.data_utils import TaskDataLoader
 
 
-PATH = '~/ml_physics/Photoswitches/dataset/photoswitches.csv'
+PATH = '~/ml_physics/Photoswitches/dataset/data_viz.csv'
 use_fragments = False
 
 
 if __name__ == '__main__':
 
-    data_loader = DataLoader(task='thermal', path=PATH)
+    data_loader = TaskDataLoader(task='thermal', path=PATH)
     smiles_list, _ = data_loader.load_property_data()
 
     if not use_fragments:
@@ -57,7 +60,7 @@ if __name__ == '__main__':
     plt.scatter(embedding_pca[:, 0], embedding_pca[:, 1])
     plt.gca().set_aspect('equal', 'datalim')
     plt.title('PCA projection of the Photoswitch dataset', fontsize=12)
-    plt.savefig('visualisation_figures/PCA_projection_use_frags_is_{}'.format(use_fragments))
+    plt.savefig('visualization_figures/PCA_projection_use_frags_is_{}'.format(use_fragments))
     plt.show()
 
     kpca = KernelPCA(n_components=2, kernel='cosine')
@@ -66,7 +69,7 @@ if __name__ == '__main__':
     plt.scatter(embedding_kpca[:, 0], embedding_kpca[:, 1])
     plt.gca().set_aspect('equal', 'datalim')
     plt.title('KPCA projection of the Photoswitch dataset', fontsize=12)
-    plt.savefig('visualisation_figures/KPCA_projection_use_frags_is_{}'.format(use_fragments))
+    plt.savefig('visualization_figures/KPCA_projection_use_frags_is_{}'.format(use_fragments))
     plt.show()
 
     reducer = umap.UMAP(n_neighbors=50, min_dist=0.01)
@@ -78,5 +81,5 @@ if __name__ == '__main__':
     plt.scatter(embedding_umap[:, 0], embedding_umap[:, 1])
     plt.gca().set_aspect('equal', 'datalim')
     plt.title('UMAP projection of the Photoswitch dataset', fontsize=12)
-    plt.savefig('visualisation_figures/UMAP_projection_use_frags_is_{}'.format(use_fragments))
+    plt.savefig('visualization_figures/UMAP_projection_use_frags_is_{}'.format(use_fragments))
     plt.show()
