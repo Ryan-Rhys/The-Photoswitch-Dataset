@@ -80,7 +80,7 @@ python  human_performance_comparison.py
 ```
 
 <p align="center">
-  <img src="human_graph.png" width="500" title="logo">
+  <img src="humanGraph.png" width="500" title="logo">
 </p>
 
 
