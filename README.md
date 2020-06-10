@@ -10,7 +10,7 @@ This repository provides benchmarked property prediction results on a curated da
 
 # Installation
 
-We recommend using a virtual environment to run the property prediction scripts.
+We recommend using a virtual environment.
 
 ```
 conda create -n photoswitch python=3.7
