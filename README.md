@@ -8,7 +8,7 @@ This repository provides benchmarked property prediction results on a curated da
   <img src="photoswitch_logo.png" width="500" title="logo">
 </p>
 
-# Installation
+## Installation
 
 We recommend using a conda virtual environment.
 
@@ -26,7 +26,7 @@ pip install dgllife
 pip install dgl
 ```
 
-# Property Prediction
+## Property Prediction
 
 To reproduce the property prediction results, run a model prediction script using the task flag to specify the 
 appropriate task (e_iso_pi, e_iso_n, z_iso_pi, z_iso_n) corresponding to different electronic transition wavelengths e.g.
@@ -41,7 +41,7 @@ python  predict_with_GPR.py -task e_iso_pi
 | MAE  | 13.3 nm  |
 | R<sup>2</sup>  | 0.90  |
 
-# Prediction Error as a Guide to Representation Selection
+## Prediction Error as a Guide to Representation Selection
 
 Prediction errors under different model/representation combinations may be analyzed in the context of the property being
 predicted.
@@ -50,7 +50,7 @@ predicted.
   <img src="triangleN.png" width="500" title="logo">
 </p>
 
-# TD-DFT Comparison
+## TD-DFT Comparison
 
 For the comparison with Time-Dependent Density Functional Theory (TD-DFT) run the DFT comparison script specifying the
 level of theory to compare against using the theory level flag (CAM-B3LYP or PBE0) e.g.
@@ -71,7 +71,7 @@ python  dft_comparison_with_GPR.py -theory_level PBE0
 | ------------- | ------------- | ------------- |
 | MAE  | 15.2 nm | 26.0 nm | 
 
-# Human Performance Comparison
+## Human Performance Comparison
 
 To reproduce the model prediction errors for the human performance comparison, run the following script:
 
@@ -84,7 +84,7 @@ python  human_performance_comparison.py
 </p>
 
 
-# Generalization Error
+## Generalization Error
 
 To reproduce the generalization error results, run the following scripts:
 
@@ -108,7 +108,7 @@ python  generalization_error.py -augment_photo_dataset True
 | MAE  | 22.7 nm  |
 | R<sup>2</sup>  | 0.67  |
 
-# Data Visualization
+## Data Visualization
 
 Run 
 
