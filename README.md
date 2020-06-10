@@ -122,7 +122,7 @@ to obtain an (unannotated) visualization of the Photoswitch Dataset
   <img src="projmaps.png" width="500" title="logo">
 </p>
 
-# What we Provide
+## What We Provide
 
 The dataset includes molecular properties for 405 photoswitch molecules. 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
