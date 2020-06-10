@@ -26,17 +26,113 @@ pip install dgllife
 pip install dgl
 ```
 
-# What we provide
+# Property Prediction
+
+To reproduce the property prediction results, run a model prediction script using the task flag to specify the 
+appropriate task (e_iso_pi, e_iso_n, z_iso_pi, z_iso_n) corresponding to different electronic transition wavelengths e.g.
+
+```bash
+python  predict_with_GPR.py -task e_iso_pi                    
+```
+
+| Metric  | GPR-Tanimoto + Fragprints |
+| ------------- | ------------- |
+| RMSE  | 20.9 nm |
+| MAE  | 13.3 nm  |
+| R<sup>2</sup>  | 0.90  |
+
+# Prediction Error as a Guide to Representation Selection
+
+Prediction errors under different model/representation combinations may be analyzed in the context of the property being
+predicted.
+
+<p align="center">
+  <img src="triangleN.png" width="500" title="logo">
+</p>
+
+# TD-DFT Comparison
+
+For the comparison with Time-Dependent Density Functional Theory (TD-DFT) run the DFT comparison script specifying the
+level of theory to compare against using the theory level flag (CAM-B3LYP or PBE0) e.g.
+
+```bash
+python  dft_comparison_with_GPR.py -theory_level CAM-B3LYP                        
+```
+
+| Metric  | GPR-Tanimoto + Fragprints | CAM-B3LYP TD-DFT |
+| ------------- | ------------- | ------------- |
+| MAE  | 14.9 nm | 16.5 nm | 
+
+```bash
+python  dft_comparison_with_GPR.py -theory_level PBE0                        
+```
+
+| Metric  | GPR-Tanimoto + Fragprints | PBE0 TD-DFT |
+| ------------- | ------------- | ------------- |
+| MAE  | 15.2 nm | 26.0 nm | 
+
+# Human Performance Comparison
+
+To reproduce the model prediction errors for the human performance comparison, run the following script:
+
+```bash
+python  human_performance_comparison.py                        
+```
+
+<p align="center">
+  <img src="human_graph.png" width="500" title="logo">
+</p>
+
+
+# Generalization Error
+
+To reproduce the generalization error results, run the following scripts:
+
+```bash
+python  generalization_error.py -augment_photo_dataset False                        
+```
+
+| Metric  | RF + Fragprints |
+| ------------- | ------------- |
+| RMSE  | 85.2 nm |
+| MAE  | 72.5 nm  |
+| R<sup>2</sup>  | -0.66  |
+
+```bash
+python  generalization_error.py -augment_photo_dataset True                        
+```
+
+| Metric  | RF + Fragprints |
+| ------------- | ------------- |
+| RMSE  | 36.9 nm |
+| MAE  | 22.7 nm  |
+| R<sup>2</sup>  | 0.67  |
+
+# Data Visualization
+
+Run 
+
+```bash
+python  visualization.py                       
+```
+
+to obtain an (unannotated) visualization of the Photoswitch Dataset
+
+<p align="center">
+  <img src="projmaps.png" width="500" title="logo">
+</p>
+
+# What we Provide
 
 The dataset includes molecular properties for 405 photoswitch molecules. 
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
 
-**Rate of thermal isomerisation** (units = s^-1): This is a measure of the thermal stability of the least stable 
+**Rate of Thermal Isomerization** (units = s^-1): This is a measure of the thermal stability of the least stable 
 isomer (Z isomer for non-cyclic azophotoswitches and E isomer for cyclic azophotoswitches). Measurements are carried out 
 in solution with the compounds dissolved in the stated solvents.
 
-**Photo Stationary State** (units = % of stated isomer): Upon continuous irradiation of an azophotoswitch a 
+**Photostationary State** (units = % of stated isomer): Upon continuous irradiation of an azophotoswitch a 
 steady state distribution of the E and Z isomers is achieved. Measurements are carried out in solution with the 
 compounds dissolved in the ‘irradiation solvents’.
 
