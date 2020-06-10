@@ -6,10 +6,10 @@ import torch
 import torch.optim as optim
 from torch.distributions.kl import kl_divergence
 
+from Attentive_NP.deterministic_encoder import DeterministicEncoder
+from Attentive_NP.latent_encoder import LatentEncoder
+from Attentive_NP.decoder import Decoder
 
-from anp_scripts.deterministic_encoder import DeterministicEncoder
-from anp_scripts.latent_encoder import LatentEncoder
-from anp_scripts.decoder import Decoder
 
 class AttentiveNP():
     """
@@ -53,7 +53,6 @@ class AttentiveNP():
                                     list(self.lat_encoder.parameters()) +
                                     list(self.decoder.parameters()), lr=lr)
 
-
     def train(self, x_trains, y_trains, batch_size=1, iterations=1000, print_freq=None):
         """
         :param x_trains: A np.array with dimensions [N_functions, [N_train, x_size]]
@@ -85,7 +84,7 @@ class AttentiveNP():
         :return:
         """
 
-        n_functions = len(x_trains)     # Should be 1 in this case, as we are effectively bootstrapping to train.
+        n_functions = len(x_trains)  # Should be 1 in this case, as we are effectively bootstrapping to train.
 
         # If only one function, no need to sample the function index and values every time.
         if n_functions == 1:
@@ -129,7 +128,7 @@ class AttentiveNP():
             y_context = torch.stack(y_context)
 
             # The deterministic encoder outputs the deterministic embedding r.
-            r = self.det_encoder.forward(x_context, y_context, x_target)    # [batch_size, N_target, r_size]
+            r = self.det_encoder.forward(x_context, y_context, x_target)  # [batch_size, N_target, r_size]
 
             # The latent encoder outputs a prior distribution over the
             # latent embedding z (conditioned only on the context points).
@@ -138,7 +137,7 @@ class AttentiveNP():
 
             # Sample z from the prior distribution.
             zs = [dist.rsample() for dist in z_priors]
-               # [batch_size, r_size]
+            # [batch_size, r_size]
             z = torch.stack(zs)
             z = z.view(-1, self.r_size)
 
@@ -196,7 +195,6 @@ class AttentiveNP():
             r = r.repeat(n_samples, 1, 1)
             x_target = x_target.repeat(n_samples, 1, 1)
 
-
             # The input to the decoder is the concatenation of the target x values,
             # the deterministic embedding r and the latent variable z
             # the output is the predicted target y for each value of x.
@@ -209,7 +207,6 @@ class AttentiveNP():
             mu = torch.mean(ys, dim=0)
             var = torch.var(ys, dim=0)
 
-
         else:
             zs = [dist.sample() for dist in dists_z]  # [batch_size, r_size]
             z = torch.cat(zs)
@@ -220,6 +217,5 @@ class AttentiveNP():
             # the output is the predicted target y for each value of x.
             _, mu, sigma = self.decoder.forward(x_target.float(), r.float(), z.float())
             var = sigma**2
-
 
         return mu, var

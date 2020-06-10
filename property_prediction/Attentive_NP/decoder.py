@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.multivariate_normal import MultivariateNormal
 
+
 class Decoder(nn.Module):
     """The Decoder."""
     def __init__(self, input_size, output_size, decoder_n_hidden, decoder_hidden_size):
@@ -60,23 +61,23 @@ class Decoder(nn.Module):
 
         batch_size = x.shape[0]
 
-        #Concatenate the input vectors x_i to the aggregated embedding r.
+        # Concatenate the input vectors x_i to the aggregated embedding r.
         z = torch.unsqueeze(z, dim=1).repeat(1, x.shape[1], 1)
 
-        #The input to the decoder is the concatenation of each x_target value with the deterministic
-        #embedding r, and the latent embedding z.
-        x = torch.cat((x, r), dim=2)   #[batch_size, N_target, (x_size + r_size)]
-        x = torch.cat((x, z), dim=2)   #[batch_size, N_target, (x_size + r_size + z_size)]
-        x = x.view(-1, self.input_size)   #[batch_size * N_target, (x_size + r_size + z_size)]
+        # The input to the decoder is the concatenation of each x_target value with the deterministic
+        # embedding r, and the latent embedding z.
+        x = torch.cat((x, r), dim=2)   # [batch_size, N_target, (x_size + r_size)]
+        x = torch.cat((x, z), dim=2)   # [batch_size, N_target, (x_size + r_size + z_size)]
+        x = x.view(-1, self.input_size)   # [batch_size * N_target, (x_size + r_size + z_size)]
 
-        #Pass input through the MLP. The output is the predicted values of y for each value of x.
+        # Pass input through the MLP. The output is the predicted values of y for each value of x.
         for fc in self.fcs[:-1]:
             x = F.relu(fc(x))
-        x = self.fcs[-1](x)     #x = [batch_size * N_target, 2*output_size]
+        x = self.fcs[-1](x)     # x = [batch_size * N_target, 2*output_size]
 
         # The outputs are the predicted y means and variances
         mus, log_sigmas = x[:, :self.output_size], x[:, self.output_size:]
-        sigmas = 0.001 + 0.999 * F.softplus(log_sigmas) #mu, sigma = [batch_size * N_target, output_size]
+        sigmas = 0.001 + 0.999 * F.softplus(log_sigmas) # mu, sigma = [batch_size * N_target, output_size]
 
         mus = mus.view(batch_size, -1, self.output_size)
         # [batch_size, N_target, output_size]
@@ -86,4 +87,3 @@ class Decoder(nn.Module):
                  zip(mus, sigmas)]
 
         return dists, mus, sigmas
-
