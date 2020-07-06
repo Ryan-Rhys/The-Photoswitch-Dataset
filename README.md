@@ -152,3 +152,17 @@ pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
 a photo stationary state is obtained. Measurements are carried out in solution with the compounds dissolved in the 
 ‘irradiation solvents’.
 
+## Citing the Photoswitch Dataset
+
+If you find the Photoswitch Dataset useful for your research, please consider citing the following article.
+
+```
+@article{Thawani2020,
+author = "Aditya Thawani and Ryan-Rhys Griffiths and Arian Jamasb and Anthony Bourached and Penelope Jones and William McCorkindale and Alexander Aldrick and Alpha Lee",
+title = "{The Photoswitch Dataset: A Molecular Machine Learning Benchmark for the Advancement of Synthetic Chemistry}",
+year = "2020",
+month = "7",
+url = "https://chemrxiv.org/articles/preprint/The_Photoswitch_Dataset_A_Molecular_Machine_Learning_Benchmark_for_the_Advancement_of_Synthetic_Chemistry/12609899",
+doi = "10.26434/chemrxiv.12609899.v1"
+}
+```
