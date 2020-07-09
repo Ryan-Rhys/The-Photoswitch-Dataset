@@ -150,6 +150,10 @@ pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
 a photo stationary state is obtained. Measurements are carried out in solution with the compounds dissolved in the 
 ‘irradiation solvents’.
 
+## Gaussian Process Regression using a Tanimoto Kernel
+
+Please see the examples folder for a tutorial on how to implement and use the GP-Tanimoto model in GPflow.
+
 ## Citing the Photoswitch Dataset
 
 If you find the Photoswitch Dataset useful for your research, please consider citing the following article.
