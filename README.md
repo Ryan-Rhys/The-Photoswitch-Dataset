@@ -17,7 +17,7 @@ conda create -n photoswitch python=3.7
 
 conda install -c conda-forge rdkit
 
-conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-learn
+conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-learn pandas
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 

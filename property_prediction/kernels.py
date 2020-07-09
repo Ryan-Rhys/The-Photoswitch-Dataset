@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
 """
