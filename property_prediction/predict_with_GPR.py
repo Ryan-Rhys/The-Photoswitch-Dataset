@@ -26,7 +26,7 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
     :param use_pca: bool. If True apply PCA to perform Principal Components Regression.
     :param n_trials: int specifying number of random train/test splits to use
     :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set
-    :param use_rmse_conf: bool specifying wheter to compute the rmse confidence-error curves or the mae confidence-
+    :param use_rmse_conf: bool specifying whether to compute the rmse confidence-error curves or the mae confidence-
     error curves. True is the option for rmse.
     """
 
@@ -40,8 +40,6 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
         n_components = 100
     else:
         n_components = None
-
-    num_features = np.shape(X)[1]
 
     # We define the Gaussian Process Regression Model using the Tanimoto kernel
 
@@ -209,7 +207,7 @@ if __name__ == '__main__':
     parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
                         help='float in range [0, 1] specifying fraction of dataset to use as test set')
     parser.add_argument('-rms', '--use_rmse_conf', type=bool, default=True,
-                        help='bool specifying wheter to compute the rmse confidence-error curves or the mae '
+                        help='bool specifying whether to compute the rmse confidence-error curves or the mae '
                              'confidence-error curves. True is the option for rmse.')
 
     args = parser.parse_args()
