@@ -27,11 +27,6 @@ else:
     print('use CPU')
     device = 'cpu'
 
-TASK = 'z_iso_n'  # ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
-PATH = '../dataset/photoswitches.csv'  # Change as appropriate
-n_trials = 20
-test_set_size = 0.2
-
 
 def main(path, task, n_trials, test_set_size):
     """
