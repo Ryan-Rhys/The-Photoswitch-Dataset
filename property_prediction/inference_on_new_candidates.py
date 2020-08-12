@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from data_utils import TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
-representation = 'fingerprints'
+representation = 'fragprints'
 task = 'e_iso_pi'
 path = '../dataset/photoswitches.csv'
 

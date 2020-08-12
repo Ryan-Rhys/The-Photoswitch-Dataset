@@ -22,6 +22,10 @@ conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-l
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 
 pip install dgl dgllife jupyter
+
+git clone https://github.com/hyperopt/hyperopt-sklearn.git
+cd hyperopt-sklearn
+pip install -e .
 ```
 
 ## Property Prediction
