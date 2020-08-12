@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-This repository provides benchmarked property prediction results on a curated dataset of 405 photoswitch molecules. 
+This repository provides benchmarked property prediction results on a curated dataset of 405 photoswitch molecules.
 
 <p align="center">
   <img src="photoswitch_logo.png" width="500" title="logo">
@@ -26,11 +26,11 @@ pip install dgl dgllife jupyter
 
 ## Property Prediction
 
-To reproduce the property prediction results, run a model prediction script using the task flag to specify the 
+To reproduce the property prediction results, run a model prediction script using the task flag to specify the
 appropriate task (e_iso_pi, e_iso_n, z_iso_pi, z_iso_n) corresponding to different electronic transition wavelengths e.g.
 
 ```bash
-python  predict_with_GPR.py -task e_iso_pi                    
+python  predict_with_GPR.py -task e_iso_pi
 ```
 
 | Metric  | GPR-Tanimoto + Fragprints |
@@ -54,27 +54,27 @@ For the comparison with Time-Dependent Density Functional Theory (TD-DFT) run th
 level of theory to compare against using the theory level flag (CAM-B3LYP or PBE0) e.g.
 
 ```bash
-python  dft_comparison_with_GPR.py -theory_level CAM-B3LYP                        
+python  dft_comparison_with_GPR.py -theory_level CAM-B3LYP
 ```
 
 | Metric  | GPR-Tanimoto + Fragprints | CAM-B3LYP TD-DFT |
 | ------------- | ------------- | ------------- |
-| MAE  | 14.9 nm | 16.5 nm | 
+| MAE  | 14.9 nm | 16.5 nm |
 
 ```bash
-python  dft_comparison_with_GPR.py -theory_level PBE0                        
+python  dft_comparison_with_GPR.py -theory_level PBE0
 ```
 
 | Metric  | GPR-Tanimoto + Fragprints | PBE0 TD-DFT |
 | ------------- | ------------- | ------------- |
-| MAE  | 15.2 nm | 26.0 nm | 
+| MAE  | 15.2 nm | 26.0 nm |
 
 ## Human Performance Comparison
 
 To reproduce the model prediction errors for the human performance comparison, run the following script:
 
 ```bash
-python  human_performance_comparison.py                        
+python  human_performance_comparison.py
 ```
 
 <p align="center">
@@ -87,7 +87,7 @@ python  human_performance_comparison.py
 To reproduce the generalization error results, run the following scripts:
 
 ```bash
-python  generalization_error.py -augment_photo_dataset False                        
+python  generalization_error.py -augment_photo_dataset False
 ```
 
 | Metric  | RF + Fragprints |
@@ -97,7 +97,7 @@ python  generalization_error.py -augment_photo_dataset False
 | R<sup>2</sup>  | -0.66  |
 
 ```bash
-python  generalization_error.py -augment_photo_dataset True                        
+python  generalization_error.py -augment_photo_dataset True
 ```
 
 | Metric  | RF + Fragprints |
@@ -108,10 +108,10 @@ python  generalization_error.py -augment_photo_dataset True
 
 ## Data Visualization
 
-Run 
+Run
 
 ```bash
-python  visualization.py                       
+python  visualization.py
 ```
 
 to obtain an (unannotated) visualization of the Photoswitch Dataset
@@ -122,20 +122,20 @@ to obtain an (unannotated) visualization of the Photoswitch Dataset
 
 ## What We Provide
 
-The dataset includes molecular properties for 405 photoswitch molecules. 
+The dataset includes molecular properties for 405 photoswitch molecules.
 All molecular structures are denoted according to the simplified molecular input line entry system (SMILES). We collate
 the following properties for the molecules:
 
-**Rate of Thermal Isomerization** (units = s^-1): This is a measure of the thermal stability of the least stable 
-isomer (Z isomer for non-cyclic azophotoswitches and E isomer for cyclic azophotoswitches). Measurements are carried out 
+**Rate of Thermal Isomerization** (units = s^-1): This is a measure of the thermal stability of the least stable
+isomer (Z isomer for non-cyclic azophotoswitches and E isomer for cyclic azophotoswitches). Measurements are carried out
 in solution with the compounds dissolved in the stated solvents.
 
-**Photostationary State** (units = % of stated isomer): Upon continuous irradiation of an azophotoswitch a 
-steady state distribution of the E and Z isomers is achieved. Measurements are carried out in solution with the 
+**Photostationary State** (units = % of stated isomer): Upon continuous irradiation of an azophotoswitch a
+steady state distribution of the E and Z isomers is achieved. Measurements are carried out in solution with the
 compounds dissolved in the ‘irradiation solvents’.
 
-**pi-pi-star/n-pi-star wavelength** (units = nanometers): The wavelength at which the pi-pi*/n-pi* electronic transition 
-has a maxima for the stated isomer. Measurements are carried out in solution with the compounds dissolved in the 
+**pi-pi-star/n-pi-star wavelength** (units = nanometers): The wavelength at which the pi-pi*/n-pi* electronic transition
+has a maxima for the stated isomer. Measurements are carried out in solution with the compounds dissolved in the
 ‘irradiation solvents’.
 
 **DFT-computed pi-pi-star/n-pi-star wavelengths** (units = nanometers): DFT-computed wavelengths at which the
@@ -143,11 +143,11 @@ pi-pi*/n-pi* electronic transition has a maxima for the stated isomer.
 
 **Extinction coefficient**: The molar extinction coefficient.
 
-**Wiberg Index**: A measure of the bond order of the N=N bond in an azophotoswitch. Bond order is a measure of the 
+**Wiberg Index**: A measure of the bond order of the N=N bond in an azophotoswitch. Bond order is a measure of the
 ‘strength’ of said chemical bond. This value is computed theoretically.
 
-**Irradiation wavelength**: The specific wavelength of light used to irradiate samples from E-Z or Z-E such that 
-a photo stationary state is obtained. Measurements are carried out in solution with the compounds dissolved in the 
+**Irradiation wavelength**: The specific wavelength of light used to irradiate samples from E-Z or Z-E such that
+a photo stationary state is obtained. Measurements are carried out in solution with the compounds dissolved in the
 ‘irradiation solvents’.
 
 ## Gaussian Process Regression using a Tanimoto Kernel
@@ -168,3 +168,6 @@ url = "https://chemrxiv.org/articles/preprint/The_Photoswitch_Dataset_A_Molecula
 doi = "10.26434/chemrxiv.12609899.v1"
 }
 ```
+
+
+
