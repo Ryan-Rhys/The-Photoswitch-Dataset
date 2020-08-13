@@ -85,10 +85,10 @@ def main(path, task, graph_type, n_trials, test_set_size):
         test_loader = DataLoader(test_data, batch_size=32, shuffle=False, collate_fn=collate, drop_last=False)
 
         gcn_net = GCNPredictor(in_feats=n_feats,
-                               hidden_feats=[64, 32],
-                               batchnorm=[True, True],
-                               dropout=[0.3, 0],
-                               classifier_hidden_feats=1
+                               hidden_feats=[16, 16],
+                               batchnorm=[False, False],
+                               dropout=[0.38, 0.38],
+                               classifier_hidden_feats=104
                                )
         gcn_net.to(device)
 

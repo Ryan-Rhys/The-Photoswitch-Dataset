@@ -85,7 +85,7 @@ def main(path, task):
 
     best_rmse = 100000000
 
-    for i in range(100):
+    for i in range(1000):
 
         num_layers = np.random.randint(1, 4)
         classifier_hidden_feats = np.random.randint(1, 128)
