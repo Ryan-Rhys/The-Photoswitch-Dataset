@@ -47,7 +47,7 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
         y_test = y_test.reshape(-1, 1)
         X_train, y_train, X_test, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)
 
-        regr_rf = RandomForestRegressor(n_estimators=1000, max_depth=300, random_state=2)
+        regr_rf = RandomForestRegressor(n_estimators=1519, random_state=4, max_features=0.086, bootstrap=False, min_samples_leaf=2)
         regr_rf.fit(X_train, y_train)
 
         # Output Standardised RMSE and RMSE on Train Set
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+    parser.add_argument('-t', '--task', type=str, default='e_iso_n',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '

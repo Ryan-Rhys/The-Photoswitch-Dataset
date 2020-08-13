@@ -10,7 +10,8 @@ import gpflow
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.model_selection import train_test_split
 
 from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
@@ -70,13 +71,10 @@ def main(path, path_to_dft_dataset, task, representation, theory_level):
 
     print('\nBeginning training loop...')
 
-    for i in range(len(y_with_dft)):
+    for i in range(5):
 
-        X_train = np.delete(X_with_dft, i, axis=0)
-        y_train = np.delete(y_with_dft, i)
-        X_test = X_with_dft[i].reshape(1, -1)
-        y_test = y_with_dft[i]
-        dft_test = dft_vals[i]
+        X_train, X_test, y_train, y_test = train_test_split(X_with_dft, y_with_dft, test_size=0.6, random_state=i)
+        X_dud, _, _, dft_test = train_test_split(X_with_dft, dft_vals, test_size=0.6, random_state=i)
 
         X_train = np.concatenate((X_train, X_no_dft))
         y_train = np.concatenate((y_train, y_no_dft))
@@ -115,7 +113,7 @@ def main(path, path_to_dft_dataset, task, representation, theory_level):
 
         # Output MAE for this trial
 
-        mae = abs(y_test - y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
 
         print("MAE: {}".format(mae))
 
@@ -125,7 +123,7 @@ def main(path, path_to_dft_dataset, task, representation, theory_level):
 
         # DFT prediction scores on the same trial
 
-        dft_mae = abs(y_test - dft_test)
+        dft_mae = mean_absolute_error(y_test, dft_test)
 
         dft_mae_list.append(dft_mae)
 

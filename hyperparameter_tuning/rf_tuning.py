@@ -34,6 +34,9 @@ def main(path, task, representation, use_pca):
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=30)
 
+    y_train = y_train.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+
     X_train, y_train, _, _, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)
 
     estim = HyperoptEstimator(regressor=random_forest_regression('my_RF'))
@@ -47,7 +50,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+    parser.add_argument('-t', '--task', type=str, default='z_iso_n',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
