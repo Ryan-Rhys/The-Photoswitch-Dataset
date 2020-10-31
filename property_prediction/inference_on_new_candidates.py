@@ -8,6 +8,7 @@ import gpflow
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
@@ -20,8 +21,11 @@ path = '../dataset/photoswitches.csv'
 
 # New candidates to predict wavelength values for
 
-candidate_list = ['O=C(OC)C(C=C1)=CC=C1C2=C[N-][N+]3=C(C=CN32)/N=N/C4=CC=CC=C4',
-                  'O=C(OC)C(C=C1)=CC=C1C2=CN3[N+]([N-]2)=CC=C3/N=N/C4=CC=CC=C4']
+# candidate_list = ['O=C(OC)C(C=C1)=CC=C1C2=C[N-][N+]3=C(C=CN32)/N=N/C4=CC=CC=C4',
+#                   'O=C(OC)C(C=C1)=CC=C1C2=CN3[N+]([N-]2)=CC=C3/N=N/C4=CC=CC=C4']
+
+df = pd.read_csv('../dataset/purchasable_switch.csv')
+candidate_list = df['SMILES'].to_list()
 
 if __name__ == '__main__':
     data_loader = TaskDataLoader(task, path)
@@ -83,3 +87,6 @@ if __name__ == '__main__':
 
     print(f'RF {representation} prediction is ')
     print(y_pred_rf)
+
+    np.savetxt('predictions/purchasable.txt', y_pred)
+    np.savetxt('predictions/purchasable_rf.txt', y_pred_rf)

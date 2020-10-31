@@ -61,7 +61,15 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
 
         # mean GP prediction
 
+        X_test = np.tile(X_test, (10000, 1))
+
+        import time
+        start = time.time()
+
         y_pred = gpr.predict(X_test, return_std=False)
+
+        end = time.time()
+        print(f'time elapsed is {end - start}')
         y_pred = y_scaler.inverse_transform(y_pred)
         y_test = y_scaler.inverse_transform(y_test)
 
