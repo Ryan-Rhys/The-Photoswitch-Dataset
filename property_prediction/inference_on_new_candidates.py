@@ -1,7 +1,9 @@
 # Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
 """
-Script for performing inference on new candidates.
+Script for performing inference on new candidates. Criterion for new candidates is that the E isomer pi-pi*
+value be between 450-600nm. The separation between the E isomer n-pi* and Z isomer n-pi* is not less than 15nm.
+The separation between E isomer pi-pi* and Z isomer pi-pi* is greater than 40nm.
 """
 
 import gpflow
@@ -28,6 +30,7 @@ df = pd.read_csv('../dataset/purchasable_switch.csv')
 candidate_list = df['SMILES'].to_list()
 
 if __name__ == '__main__':
+
     data_loader = TaskDataLoader(task, path)
     smiles_list, y_train = data_loader.load_property_data()
     X_train = featurise_mols(smiles_list, representation)
@@ -88,5 +91,10 @@ if __name__ == '__main__':
     print(f'RF {representation} prediction is ')
     print(y_pred_rf)
 
-    np.savetxt('predictions/purchasable.txt', y_pred)
-    np.savetxt('predictions/purchasable_rf.txt', y_pred_rf)
+    # Ensembled prediction
+
+    y_pred_av = (y_pred_rf.reshape(-1, 1) + y_pred.reshape(-1, 1)) / 2.0
+
+    np.savetxt(f'predictions/purchasable_gp_task_{task}.txt', y_pred)
+    np.savetxt(f'predictions/purchasable_rf_task_{task}.txt', y_pred_rf)
+    np.savetxt(f'predictions/purchasable_ensemble_task_{task}.txt', y_pred_av)

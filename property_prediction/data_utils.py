@@ -6,7 +6,7 @@ module for loading data
 
 import numpy as np
 import pandas as pd
-from rdkit.Chem import AllChem, Descriptors, MolFromSmiles
+from rdkit.Chem import AllChem, Descriptors, MolFromSmiles, MolToSmiles
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -181,7 +181,11 @@ def featurise_mols(smiles_list, representation, bond_radius=3, nBits=2048):
 
         # fragprints
 
+        # convert to mol and back to smiles in order to make non-isomeric.
+
         rdkit_mols = [MolFromSmiles(smiles) for smiles in smiles_list]
+        rdkit_smiles = [MolToSmiles(mol, isomericSmiles=False) for mol in rdkit_mols]
+        rdkit_mols = [MolFromSmiles(smiles) for smiles in rdkit_smiles]
         X = [AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=2048) for mol in rdkit_mols]
         X = np.asarray(X)
 
