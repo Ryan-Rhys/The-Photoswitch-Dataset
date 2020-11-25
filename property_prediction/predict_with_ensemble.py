@@ -80,7 +80,23 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
         k = Tanimoto()
         m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
-        regr_rf = RandomForestRegressor(n_estimators=1000, max_depth=300, random_state=2)
+        # e_iso_pi best params:
+        # {'learner': RandomForestRegressor(max_features=0.9348473830061558, n_estimators=381,
+        #                       n_jobs=1, random_state=2, verbose=False)}
+        # e_iso_n best params:
+        # {'learner': RandomForestRegressor(bootstrap=False, max_features=0.09944870853556087,
+        #                                   min_samples_leaf=3, n_estimators=1295, n_jobs=1,
+        #                                   random_state=0, verbose=False)}
+        # z_iso_pi best params:
+        # {'learner': RandomForestRegressor(max_depth=4, max_features=0.33072121415416944,
+        #                                   n_estimators=2755, n_jobs=1, random_state=2,
+        #                                   verbose=False)}
+        # z_iso_n best params:
+        # {'learner': RandomForestRegressor(max_features=None, n_estimators=892, n_jobs=1,
+        #                                   random_state=3, verbose=False)}
+
+        regr_rf = RandomForestRegressor(max_features=None, n_estimators=892, n_jobs=1,
+                                           random_state=3, verbose=False)
         regr_rf.fit(X_train, y_train)
 
         # Optimise the kernel variance and noise level by the marginal likelihood
@@ -134,7 +150,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+    parser.add_argument('-t', '--task', type=str, default='z_iso_n',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
