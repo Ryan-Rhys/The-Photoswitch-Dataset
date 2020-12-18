@@ -82,7 +82,7 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
         # Optimise the kernel variance and noise level by the marginal likelihood
 
         opt = gpflow.optimizers.Scipy()
-        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
+        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=10000))
         print_summary(m)
 
         # mean and variance GP prediction

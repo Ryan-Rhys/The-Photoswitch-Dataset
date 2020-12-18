@@ -12,8 +12,16 @@ import tensorflow as tf
 
 
 class Tanimoto(gpflow.kernels.Kernel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        """
+        :param kwargs: accepts `name` and `active_dims`, which is a list or
+            slice of indices which controls which columns of X are used (by
+            default, all columns are used).
+        """
+        for kwarg in kwargs:
+            if kwarg not in {"name", "active_dims"}:
+                raise TypeError("Unknown keyword argument:", kwarg)
+        super().__init__(**kwargs)
         self.variance = gpflow.Parameter(1.0, transform=positive())
 
     def K(self, X, X2=None):
