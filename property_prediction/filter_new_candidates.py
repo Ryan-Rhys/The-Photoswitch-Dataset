@@ -8,7 +8,7 @@ The separation between E isomer pi-pi* and Z isomer pi-pi* is greater than 40nm.
 
 import numpy as np
 
-model = 'ensemble'  # ['gp', 'rf', 'ensemble']
+model = 'gp'  # ['gp', 'rf', 'ensemble', 'multioutput_gp']
 
 if __name__ == '__main__':
 

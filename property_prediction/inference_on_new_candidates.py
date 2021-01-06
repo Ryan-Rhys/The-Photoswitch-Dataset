@@ -12,6 +12,7 @@ from gpflow.utilities import print_summary
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
 
 from data_utils import TaskDataLoader, featurise_mols
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     def objective_closure():
         return -m.log_marginal_likelihood()
 
-    #  We standardise the outputs but leave the inputs unchanged
+    #  We standardise the outputs but leave the inputs unchanged. Equivalent to transform data used in other scripts.
 
     y_train = y_train.reshape(-1, 1)
     y_scaler = StandardScaler()
@@ -70,6 +71,11 @@ if __name__ == '__main__':
     y_pred, y_var = m.predict_f(X_test)
     y_pred = y_scaler.inverse_transform(y_pred)
     y_var = y_scaler.inverse_transform(y_var)
+
+    y_pred_train, _ = m.predict_f(X_train)
+    train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
+    train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
+    print("Train RMSE: {:.3f}".format(train_rmse))
 
     print(f'GP {representation} prediction is ')
     print(y_pred)
