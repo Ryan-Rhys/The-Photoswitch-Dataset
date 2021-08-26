@@ -8,18 +8,39 @@ The separation between E isomer pi-pi* and Z isomer pi-pi* is greater than 40nm.
 
 import numpy as np
 
-model = 'gp'  # ['gp', 'rf', 'ensemble', 'multioutput_gp']
-
 if __name__ == '__main__':
 
-    # Load property predictions for the purchasble molecules for a given model.
+    # Load property predictions for the purchasable molecules for a given model.
 
-    data_ep = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_pi.txt')
-    data_en = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_n.txt')
-    data_zn = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_n.txt')
-    data_zp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_pi.txt')
+    model = 'multioutput_gp'  # ['gp', 'rf', 'ensemble', 'multioutput_gp']
+
+    data_ep_mgp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_pi.txt')
+    data_en_mgp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_n.txt')
+    data_zn_mgp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_n.txt')
+    data_zp_mgp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_pi.txt')
+
+    model = 'gp'  # ['gp', 'rf', 'ensemble', 'multioutput_gp']
+
+    data_ep_gp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_pi.txt')
+    data_en_gp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_n.txt')
+    data_zn_gp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_n.txt')
+    data_zp_gp = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_pi.txt')
+
+    model = 'rf'  # ['gp', 'rf', 'ensemble', 'multioutput_gp']
+
+    data_ep_rf = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_pi.txt')
+    data_en_rf = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_e_iso_n.txt')
+    data_zn_rf = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_n.txt')
+    data_zp_rf = np.loadtxt(f'../property_prediction/predictions/purchasable_{model}_task_z_iso_pi.txt')
+
+    data_ep = (data_ep_gp + data_ep_rf + data_ep_mgp)/3.0
+    data_en = (data_en_gp + data_en_rf + data_en_mgp)/3.0
+    data_zp = (data_zp_gp + data_zp_rf + data_zp_mgp)/3.0
+    data_zn = (data_zn_gp + data_zn_rf + data_zn_mgp)/3.0
 
     # Apply the first criterion
+
+    model = 'triple_ensemble'
 
     data_filtered_crit_one = np.where(data_ep > 450)
     data_filtered_crit_two = np.abs(data_en - data_zn)

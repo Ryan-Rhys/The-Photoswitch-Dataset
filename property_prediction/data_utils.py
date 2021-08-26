@@ -166,6 +166,7 @@ def featurise_mols(smiles_list, representation, bond_radius=3, nBits=2048):
 
         # descList[115:] contains fragment-based features only
         # (https://www.rdkit.org/docs/source/rdkit.Chem.Fragments.html)
+        # NB latest version of RDKit has 7 more features that change indexing.
 
         fragments = {d[0]: d[1] for d in Descriptors.descList[115:]}
         X = np.zeros((len(smiles_list), len(fragments)))
