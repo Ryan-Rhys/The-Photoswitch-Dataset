@@ -1,6 +1,8 @@
 # The Photoswitch Dataset
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/232307189.svg)](https://zenodo.org/badge/latestdoi/232307189)
+
 
 This repository provides benchmarked property prediction results on a curated dataset of 405 photoswitch molecules. 
 
