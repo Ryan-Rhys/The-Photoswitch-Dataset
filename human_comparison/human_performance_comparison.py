@@ -1,7 +1,7 @@
 # Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
 """
-Script for comparing against human performance on a set of 5 molecules.
+Script for comparing against human performance on a set of 5 molecules with Tanimoto GP.
 """
 
 import argparse
@@ -16,13 +16,13 @@ from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
 
-def main(path, task, representation):
+def main(path, representation):
     """
     :param path: str specifying path to dataset.
-    :param task: str specifying the task. Always e_iso_pi in the case of the human performance comparison
     :param representation: str specifying the molecular representation. One of ['fingerprints, 'fragments', 'fragprints']
     """
 
+    task = 'e_iso_pi'  # Always e_iso_pi for human performance comparison
     data_loader = TaskDataLoader(task, path)
     smiles_list, y = data_loader.load_property_data()
     X = featurise_mols(smiles_list, representation)
@@ -112,12 +112,10 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
-                        help='str specifying the task. Always e_iso_pi in the case of the human performance comparison')
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
 
     args = parser.parse_args()
 
-    main(args.path, args.task, args.representation)
+    main(args.path, args.representation)
