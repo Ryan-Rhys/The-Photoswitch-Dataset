@@ -54,6 +54,14 @@ predicted.
   <img src="triangleN.png" width="500" title="logo">
 </p>
 
+The following boxplot shows shows the performance of each molecular representation
+aggregated across the Random Forest, Gaussian Process, Multioutput Gaussian Process
+and Attentive Neural Process models.
+
+<p align="center">
+  <img src="boxplot_repr.png" width="500" title="logo">
+</p>
+
 ## TD-DFT Comparison
 
 For the comparison with Time-Dependent Density Functional Theory (TD-DFT) run the DFT comparison script specifying the
