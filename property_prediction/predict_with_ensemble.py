@@ -1,20 +1,25 @@
+# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Author: Ryan-Rhys Griffiths
 """
-Script for training a model to predict properties in the photoswitch dataset using Gaussian Process Regression in
-scikit-learn using the Dries Van Rompaey's implementation.
+Script for training an ensemble model to predict properties in the photoswitch dataset using GP+RF ensemble.
 """
 
 import argparse
 
+import gpflow
+from gpflow.mean_functions import Constant
+from gpflow.utilities import print_summary
+from matplotlib import pyplot as plt
 import numpy as np
-from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 from data_utils import transform_data, TaskDataLoader, featurise_mols
-from sklearn_kernels import TanimotoKernel
+from kernels import Tanimoto
 
 
-def main(path, task, representation, use_pca, n_trials, test_set_size):
+def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_conf):
     """
     :param path: str specifying path to dataset.
     :param task: str specifying the task. One of ['e_iso_pi', 'z_iso_pi', 'e_iso_n', 'z_iso_n']
@@ -22,6 +27,8 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
     :param use_pca: bool. If True apply PCA to perform Principal Components Regression.
     :param n_trials: int specifying number of random train/test splits to use
     :param test_set_size: float in range [0, 1] specifying fraction of dataset to use as test set
+    :param use_rmse_conf: bool specifying whether to compute the rmse confidence-error curves or the mae confidence-
+    error curves. True is the option for rmse.
     """
 
     data_loader = TaskDataLoader(task, path)
@@ -35,9 +42,24 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
     else:
         n_components = None
 
+    # We define the Gaussian Process Regression Model using the Tanimoto kernel
+
+    m = None
+
+    def objective_closure():
+        return -m.log_marginal_likelihood()
+
     r2_list = []
     rmse_list = []
     mae_list = []
+
+    # We pre-allocate arrays for plotting confidence-error curves
+
+    _, _, _, y_test = train_test_split(X, y, test_size=test_set_size)  # To get test set size
+    n_test = len(y_test)
+
+    rmse_confidence_list = np.zeros((n_trials, n_test))
+    mae_confidence_list = np.zeros((n_trials, n_test))
 
     print('\nBeginning training loop...')
 
@@ -55,27 +77,47 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
         X_train = X_train.astype(np.float64)
         X_test = X_test.astype(np.float64)
 
-        gp_kernel = TanimotoKernel()
-        gpr = GaussianProcessRegressor(kernel=gp_kernel)
-        gpr.fit(X_train, y_train)
+        k = Tanimoto()
+        m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
-        # mean GP prediction
+        # e_iso_pi best params:
+        # {'learner': RandomForestRegressor(max_features=0.9348473830061558, n_estimators=381,
+        #                       n_jobs=1, random_state=2, verbose=False)}
+        # e_iso_n best params:
+        # {'learner': RandomForestRegressor(bootstrap=False, max_features=0.09944870853556087,
+        #                                   min_samples_leaf=3, n_estimators=1295, n_jobs=1,
+        #                                   random_state=0, verbose=False)}
+        # z_iso_pi best params:
+        # {'learner': RandomForestRegressor(max_depth=4, max_features=0.33072121415416944,
+        #                                   n_estimators=2755, n_jobs=1, random_state=2,
+        #                                   verbose=False)}
+        # z_iso_n best params:
+        # {'learner': RandomForestRegressor(max_features=None, n_estimators=892, n_jobs=1,
+        #                                   random_state=3, verbose=False)}
 
-        X_test = np.tile(X_test, (10000, 1))
+        regr_rf = RandomForestRegressor(max_features=None, n_estimators=892, n_jobs=1,
+                                           random_state=3, verbose=False)
+        regr_rf.fit(X_train, y_train)
 
-        import time
-        start = time.time()
+        # Optimise the kernel variance and noise level by the marginal likelihood
 
-        y_pred = gpr.predict(X_test, return_std=False)
+        opt = gpflow.optimizers.Scipy()
+        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
+        print_summary(m)
 
-        end = time.time()
-        print(f'time elapsed is {end - start}')
-        y_pred = y_scaler.inverse_transform(y_pred)
+        # mean and variance GP prediction and RF prediction
+
+        y_pred, y_var = m.predict_f(X_test)
+        y_pred_rf = regr_rf.predict(X_test)
+        y_pred_av = (y_pred + y_pred_rf.reshape(-1, 1)) / 2.0
+        y_pred = y_scaler.inverse_transform(y_pred_av)
         y_test = y_scaler.inverse_transform(y_test)
 
         # Output Standardised RMSE and RMSE on Train Set
 
-        y_pred_train = gpr.predict(X_train, return_std=False)
+        y_pred_train, _ = m.predict_f(X_train)
+        y_pred_train_rf = regr_rf.predict(X_train)
+        y_pred_train = (y_pred_train + y_pred_train_rf.reshape(-1, 1)) / 2.0
         train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
         train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
         print("\nStandardised Train RMSE: {:.3f}".format(train_rmse_stan))
@@ -108,7 +150,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
+    parser.add_argument('-t', '--task', type=str, default='z_iso_n',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
@@ -119,7 +161,10 @@ if __name__ == '__main__':
                         help='int specifying number of random train/test splits to use')
     parser.add_argument('-ts', '--test_set_size', type=float, default=0.2,
                         help='float in range [0, 1] specifying fraction of dataset to use as test set')
+    parser.add_argument('-rms', '--use_rmse_conf', type=bool, default=True,
+                        help='bool specifying whether to compute the rmse confidence-error curves or the mae '
+                             'confidence-error curves. True is the option for rmse.')
 
     args = parser.parse_args()
 
-    main(args.path, args.task, args.representation, args.use_pca, args.n_trials, args.test_set_size)
+    main(args.path, args.task, args.representation, args.use_pca, args.n_trials, args.test_set_size, args.use_rmse_conf)

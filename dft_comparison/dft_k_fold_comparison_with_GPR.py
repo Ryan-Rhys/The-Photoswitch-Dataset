@@ -73,7 +73,7 @@ def main(path, path_to_dft_dataset, task, representation, theory_level):
 
     for i in range(5):
 
-        X_train, X_test, y_train, y_test = train_test_split(X_with_dft, y_with_dft, test_size=0.6, random_state=i)
+        X_train, X_test, y_train, y_test = train_test_split(X_with_dft, y_with_dft, test_size=0.5, random_state=i)
         X_dud, _, _, dft_test = train_test_split(X_with_dft, dft_vals, test_size=0.6, random_state=i)
 
         X_train = np.concatenate((X_train, X_no_dft))

@@ -82,7 +82,7 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
         # Optimise the kernel variance and noise level by the marginal likelihood
 
         opt = gpflow.optimizers.Scipy()
-        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
+        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=10000))
         print_summary(m)
 
         # mean and variance GP prediction
@@ -197,7 +197,7 @@ if __name__ == '__main__':
                         help='Path to the photoswitches.csv file.')
     parser.add_argument('-t', '--task', type=str, default='e_iso_pi',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
-    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+    parser.add_argument('-r', '--representation', type=str, default='fragments',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
     parser.add_argument('-pca', '--use_pca', type=bool, default=False,

@@ -7,12 +7,13 @@ theory and 114 molecules with DFT-computed values at the PBE0 level of theory.
 import argparse
 
 import gpflow
+from gpflow.ci_utils import ci_niter
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from data_utils import transform_data, TaskDataLoader, featurise_mols
+from data_utils import TaskDataLoader, featurise_mols
 from kernels import Tanimoto
 
 
@@ -58,6 +59,30 @@ def main(path, path_to_dft_dataset, representation, theory_level):
         X_no_dft = np.delete(X, np.argwhere(~np.isnan(pbe0_vals)), axis=0)
         y_no_dft = np.delete(experimental_vals, np.argwhere(~np.isnan(pbe0_vals)))
 
+    # Load in the other property values for multitask learning. e_iso_pi is a always the task in this instance.
+
+    data_loader_z_iso_pi = TaskDataLoader('z_iso_pi', path)
+    data_loader_e_iso_n = TaskDataLoader('e_iso_n', path)
+    data_loader_z_iso_n = TaskDataLoader('z_iso_n', path)
+
+    smiles_list_z_iso_pi, y_z_iso_pi = data_loader_z_iso_pi.load_property_data()
+    smiles_list_e_iso_n, y_e_iso_n = data_loader_e_iso_n.load_property_data()
+    smiles_list_z_iso_n, y_z_iso_n = data_loader_z_iso_n.load_property_data()
+
+    y_z_iso_pi = y_z_iso_pi.reshape(-1, 1)
+    y_e_iso_n = y_e_iso_n.reshape(-1, 1)
+    y_z_iso_n = y_z_iso_n.reshape(-1, 1)
+
+    X_z_iso_pi = featurise_mols(smiles_list_z_iso_pi, representation)
+    X_e_iso_n = featurise_mols(smiles_list_e_iso_n, representation)
+    X_z_iso_n = featurise_mols(smiles_list_z_iso_n, representation)
+
+    output_dim = 4  # Number of outputs
+    rank = 1  # Rank of W
+    feature_dim = len(X_no_dft[0, :])
+
+    tanimoto_active_dims = [i for i in range(feature_dim)]  # active dims for Tanimoto base kernel.
+
     mae_list = []
     dft_mae_list = []
 
@@ -83,39 +108,63 @@ def main(path, path_to_dft_dataset, representation, theory_level):
         y_train = y_train.reshape(-1, 1)
         y_test = y_test.reshape(-1, 1)
 
-        #  We standardise the outputs but leave the inputs unchanged
-
-        _, y_train, _, y_test, y_scaler = transform_data(X_train, y_train, X_test, y_test)
-
         X_train = X_train.astype(np.float64)
         X_test = X_test.astype(np.float64)
 
-        k = Tanimoto()
-        m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
+        # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
+        X_augmented = np.vstack((np.append(X_train, np.zeros((len(X_train), 1)), axis=1),
+                                 np.append(X_z_iso_pi, np.ones((len(X_z_iso_pi), 1)), axis=1),
+                                 np.append(X_e_iso_n, np.ones((len(X_e_iso_n), 1)) * 2, axis=1),
+                                 np.append(X_z_iso_n, np.ones((len(X_z_iso_n), 1)) * 3, axis=1)))
 
-        # Optimise the kernel variance and noise level by the marginal likelihood
+        X_test = np.append(X_test, np.zeros((len(X_test), 1)), axis=1)
+        X_train = np.append(X_train, np.zeros((len(X_train), 1)), axis=1)
 
-        opt = gpflow.optimizers.Scipy()
-        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=100))
+        # Augment the Y data with zeroes, ones, twos and threes that specify a likelihood from the list of likelihoods
+        Y_augmented = np.vstack((np.hstack((y_train, np.zeros_like(y_train))),
+                                 np.hstack((y_z_iso_pi, np.ones_like(y_z_iso_pi))),
+                                 np.hstack((y_e_iso_n, np.ones_like(y_e_iso_n) * 2)),
+                                 np.hstack((y_z_iso_n, np.ones_like(y_z_iso_n) * 3))))
+
+        y_test = np.hstack((y_test, np.zeros_like(y_test)))
+
+        # Base kernel
+        k = Tanimoto(active_dims=tanimoto_active_dims)
+        #set_trainable(k.variance, False)
+
+        # Coregion kernel
+        coreg = gpflow.kernels.Coregion(output_dim=output_dim, rank=rank, active_dims=[feature_dim])
+
+        # Create product kernel
+        kern = k * coreg
+
+        # This likelihood switches between Gaussian noise with different variances for each f_i:
+        lik = gpflow.likelihoods.SwitchedLikelihood([gpflow.likelihoods.Gaussian(), gpflow.likelihoods.Gaussian(),
+                                                     gpflow.likelihoods.Gaussian(), gpflow.likelihoods.Gaussian()])
+
+        # now build the GP model as normal
+        m = gpflow.models.VGP((X_augmented, Y_augmented), mean_function=Constant(np.mean(y_train[:, 0])), kernel=kern, likelihood=lik)
+
+        # fit the covariance function parameters
+        maxiter = ci_niter(1000)
+        gpflow.optimizers.Scipy().minimize(m.training_loss, m.trainable_variables, options=dict(maxiter=maxiter), method="L-BFGS-B",)
         print_summary(m)
 
         # Output Standardised RMSE and RMSE on Train Set
 
         y_pred_train, _ = m.predict_f(X_train)
         train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
-        train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
+        train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
         print("\nStandardised Train RMSE: {:.3f}".format(train_rmse_stan))
         print("Train RMSE: {:.3f}".format(train_rmse))
 
         # mean and variance GP prediction
 
         y_pred, y_var = m.predict_f(X_test)
-        y_pred = y_scaler.inverse_transform(y_pred)
-        y_test = y_scaler.inverse_transform(y_test)
 
         # Output MAE for this trial
 
-        mae = abs(y_test - y_pred)
+        mae = abs(y_test[:, 0] - y_pred)
 
         print("MAE: {}".format(mae))
 
@@ -125,7 +174,7 @@ def main(path, path_to_dft_dataset, representation, theory_level):
 
         # DFT prediction scores on the same trial
 
-        dft_mae = abs(y_test - dft_test)
+        dft_mae = abs(y_test[:, 0] - dft_test)
 
         dft_mae_list.append(dft_mae)
 
@@ -133,7 +182,6 @@ def main(path, path_to_dft_dataset, representation, theory_level):
     dft_mae_list = np.array(dft_mae_list)
 
     print("\nmean GP-Tanimoto MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
-
     print("mean {} MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mae_list), np.std(dft_mae_list)/np.sqrt(len(dft_mae_list))))
 
 
@@ -148,7 +196,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
-    parser.add_argument('-th', '--theory_level', type=str, default='CAM-B3LYP',
+    parser.add_argument('-th', '--theory_level', type=str, default='PBE0',
                         help='level of theory to compare against - CAM-B3LYP or PBE0 [CAM-B3LYP, PBE0]')
 
     args = parser.parse_args()
