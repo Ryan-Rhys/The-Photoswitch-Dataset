@@ -23,7 +23,7 @@ conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-l
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 
-pip install dgl dgllife jupyter
+pip install dgl dgllife jupyter gpflux
 
 git clone https://github.com/hyperopt/hyperopt-sklearn.git
 cd hyperopt-sklearn

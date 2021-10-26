@@ -1,18 +1,20 @@
 # Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
 # Author: Ryan-Rhys Griffiths
 """
-Script for training a model to predict properties in the photoswitch dataset using Gaussian Process Regression.
+Script for training a model to predict properties in the photoswitch dataset using deep Gaussian Process Regression.
 """
 
 import argparse
 
 import gpflow
+import gpflux
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import tensorflow as tf
 
 from data_utils import transform_data, TaskDataLoader, featurise_mols
 from kernels import Tanimoto
@@ -76,18 +78,37 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
         X_train = X_train.astype(np.float64)
         X_test = X_test.astype(np.float64)
 
-        k = Tanimoto()
-        m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
+        # Layer 1
+        kernel1 = Tanimoto()
+        inducing_variable1 = gpflow.inducing_variables.InducingPoints(X_train.copy())
+        gp_layer1 = gpflux.layers.GPLayer(
+            kernel1, inducing_variable1, num_data=X_train.shape[0], num_latent_gps=X_train.shape[1]
+        )
 
-        # Optimise the kernel variance and noise level by the marginal likelihood
+        # Layer 2
+        kernel2 = Tanimoto()
+        inducing_variable2 = gpflow.inducing_variables.InducingPoints(X_train.copy())
+        gp_layer2 = gpflux.layers.GPLayer(
+            kernel2,
+            inducing_variable2,
+            num_data=X_train.shape[0],
+            num_latent_gps=X_train.shape[1],
+            mean_function=Constant(np.mean(y_train)),
+        )
 
-        opt = gpflow.optimizers.Scipy()
-        opt.minimize(objective_closure, m.trainable_variables, options=dict(maxiter=10000))
-        print_summary(m)
+        # Initialise likelihood and build model
+        likelihood_layer = gpflux.layers.LikelihoodLayer(gpflow.likelihoods.Gaussian(0.1))
+        two_layer_dgp = gpflux.models.DeepGP([gp_layer1, gp_layer2], likelihood_layer)
+
+        # Compile and fit
+        model = two_layer_dgp.as_training_model()
+        model.compile(tf.optimizers.Adam(0.01))
+        history = model.fit({"inputs": X_train, "targets": y_train}, epochs=int(1e3), verbose=0)
+        #m = gpflow.models.GPR(data=(X_train, y_train), mean_function=Constant(np.mean(y_train)), kernel=k, noise_variance=1)
 
         # mean and variance GP prediction
 
-        y_pred, y_var = m.predict_f(X_test)
+        y_pred, y_var = model.predict_f(X_test)
         y_pred = y_scaler.inverse_transform(y_pred)
         y_test = y_scaler.inverse_transform(y_test)
 
@@ -110,7 +131,7 @@ def main(path, task, representation, use_pca, n_trials, test_set_size, use_rmse_
 
         # Output Standardised RMSE and RMSE on Train Set
 
-        y_pred_train, _ = m.predict_f(X_train)
+        y_pred_train, _ = model.predict_f(X_train)
         train_rmse_stan = np.sqrt(mean_squared_error(y_train, y_pred_train))
         train_rmse = np.sqrt(mean_squared_error(y_scaler.inverse_transform(y_train), y_scaler.inverse_transform(y_pred_train)))
         print("\nStandardised Train RMSE: {:.3f}".format(train_rmse_stan))

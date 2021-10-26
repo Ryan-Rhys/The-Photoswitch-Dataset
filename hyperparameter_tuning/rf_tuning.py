@@ -39,7 +39,7 @@ def main(path, task, representation, use_pca):
 
     X_train, y_train, _, _, y_scaler = transform_data(X_train, y_train, X_test, y_test, n_components, use_pca)
 
-    estim = HyperoptEstimator(regressor=random_forest_regression('my_RF'))
+    estim = HyperoptEstimator(regressor=random_forest_regression('my_RF'), max_evals=1000)
     estim.fit(X_train, y_train, valid_size=0.1, n_folds=5, cv_shuffle=True)
     print(estim.best_model())
     with open(f'saved_hypers/RF/tuning_for_{task}', 'w') as f:
