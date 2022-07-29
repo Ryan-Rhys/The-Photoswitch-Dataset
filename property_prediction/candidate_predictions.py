@@ -1,9 +1,6 @@
-# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
-# Author: Ryan-Rhys Griffiths
 """
-Script for performing inference on new candidates. Criterion for new candidates is that the E isomer pi-pi*
-value be between 450-600nm. The separation between the E isomer n-pi* and Z isomer n-pi* is not less than 15nm.
-The separation between E isomer pi-pi* and Z isomer pi-pi* is greater than 40nm.
+Candidate predictions for the MOGP model.
+Author: Ryan-Rhys Griffiths
 """
 
 import gpflow
@@ -11,8 +8,6 @@ from gpflow.ci_utils import ci_niter
 from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
-import pandas as pd
-from sklearn.metrics import mean_squared_error
 
 from data_utils import TaskDataLoader, featurise_mols
 from kernels import Tanimoto
@@ -20,12 +15,63 @@ from kernels import Tanimoto
 representation = 'fragprints'
 task = 'e_iso_pi'
 path = '../dataset/photoswitches.csv'
-df = pd.read_csv('../dataset/purchasable_switch.csv')
-candidate_list = df['SMILES'].to_list()
 
 if __name__ == '__main__':
 
-    X_test = featurise_mols(candidate_list, representation)
+    candidate_list = ['CCOC1=CC=C(/N=N/C2=C3N=CC(C#N)=C(N)N3N=C2N)C=C1',
+                      'NC1=NN2C(N)=C(C#N)C=NC2=C1/N=N/C3=CC4=C(OCO4)C=C3',
+                      'COC1=CC=C(C2=NC3=C(C(N)=NN3C(N)=C2C#N)/N=N/C4=CC5=C(OCO5)C=C4)C=C1',
+                      'O=S(C1=CC=C(/N=N/C2=C3N=C(C4=CC=CS4)C(C#N)=C(N)N3N=C2N)C=C1)(N)=O',
+                      'CSC1=C(C(N)=NC2=C(C(N)=NN12)/N=N/C3=CC=C(S(N)(=O)=O)C=C3)C#N',
+                      'COC1=CC=C(/N=N/C2=C3N=C(C4=CC=CC=C4)C(C#N)=C(N)N3N=C2N)C=C1',
+                      '[O-]Cl(=O)(=O)=O.CCN(C1=CC=C(/N=N/C2=C([N+]([O-])=O)C(C)=[N+](N2C)C)C=C1)CC',
+                      'CN(C1=CC=C(/N=N/C2=NC(C#N)=C(C#N)N2)C=C1)C',
+                      'CN1C(/N=N/C2=CC=C(NC3=CC=CC=C3)C=C2)=NC4=CC=CC=C14',
+                      'CCN(S(=O)(C1=CC=C(/N=N/C2=C(C3=CC=CC=C3)N=C(N)S2)C=C1)=O)CC',
+                      'O=C1N(C2=CC=CC=C2)N(C)C(C)=C1/N=N/C3=CC=C(N)C(OC)=C3']
+
+    # list of original candidates when 3 criteria were applied.
+
+    candidate_list_old = ['CCN(CC)[S](=O)(=O)C1=CC=C(C=C1)N=NC2=C(N=C(N)S2)C3=CC=CC=C3',
+                          'COC1=C(N)C=CC(=C1)N=NC2=C(C)N(C)N(C2=O)C3=CC=CC=C3',
+                          'NC1=NC(=C(S1)N=NC2=NC(=CS2)C3=CC=CC=C3)C4=CC=CC=C4',
+                          'CSC1=C(C#N)C(=NC2=C(N=NC3=CC=C(C=C3)[S](N)(=O)=O)C(=N[N]12)N)N',
+                          'CCOC1=CC=C(C=C1)N=NC2=C3N=CC(=C(N)[N]3N=C2N)C#N',
+                          'NC1=N[N]2C(=C(C=NC2=C1N=NC3=CC4=C(OCO4)C=C3)C#N)N',
+                          'COC1=CC=C(C=C1)C2=NC3=C(N=NC4=CC5=C(OCO5)C=C4)C(=N[N]3C(=C2C#N)N)N',
+                          'NC1=N[N]2C(=C(C#N)C(=NC2=C1N=NC3=CC=C(C=C3)[S](N)(=O)=O)C4=CC=CS4)N',
+                          'COC1=CC=C(C=C1)N=NC2=C3N=C(C(=C(N3N=C2N)N)C#N)C4=CC=CC=C4',
+                          'CN(C)C1=CC=C(C=C1)N=NC2=NC(=C(N2)C#N)C#N',
+                          'CCN(CC)C1=CC=C(C=C1)N=NC2=C(C(=[N+](N2C)C)C)N(=O)=O.[O-]Cl(=O)(=O)=O',
+                          'C[N]1C(=NC2=C1C=CC=C2)N=NC3=CC=C(NC4=CC=CC=C4)C=C3']
+
+    # This is the second Molport order of 11 molecules as per invoice of 27/5/2022.
+
+    candidate_list_molport = ['CN(C)C1=CC=C(C=C1)N=NC2=NC3=C(C=CC=C3)[N]2C',
+                              'C[N]1C(=NC2=C1C=CC=C2)N=NC3=CC=C(NC4=CC=CC=C4)C=C3',
+                              'COC1=CC=C(NC2=CC=C(C=C2)N=NC3=NC4=C(C=CC=C4)[N]3C)C=C1',
+                              'C[N]1C(=NC2=C1C=CC=C2)N=NC3=CC=C(NC4=CC=C(C)C=C4)C=C3',
+                              'C[N]1C2=C(C=CC=C2)N=C1N=NC3=CC=C(C=C3)N4CCOCC4',
+                              'CCOC1=CC=C(C=C1)N=NC2=C3N=CC(=C(N)[N]3N=C2N)C#N',
+                              'NC1=N[N]2C(=C(C=NC2=C1N=NC3=CC4=C(OCO4)C=C3)C#N)N',
+                              'COC1=CC=C(C=C1)C2=NC3=C(N=NC4=CC5=C(OCO5)C=C4)C(=N[N]3C(=C2C#N)N)N',
+                              'NC1=N[N]2C(=C(C#N)C(=NC2=C1N=NC3=CC=C(C=C3)[S](N)(=O)=O)C4=CC=CS4)N',
+                              'CSC1=C(C#N)C(=NC2=C(N=NC3=CC=C(C=C3)[S](N)(=O)=O)C(=N[N]12)N)N',
+                              'COC1=CC=C(C=C1)N=NC2=C3N=C(C4=CC=CC=C4)C(=C(N)[N]3N=C2N)C#N']
+
+    candidate_list_purchasable_test = ['c1cnc([nH]1)N=Nc2nccs2',
+                                       'c1cc([nH]c1)N=Nc2nccs2',
+                                       'c1(c(non1)N=Nc2c(non2)N)N',
+                                       'c1(c(non1)N=N\c2c(non2)N)N',
+                                       'Cc1c(non1)N=Nc2c(non2)C',
+                                       'c1ccc(cc1)N=Nc2c(non2)N',
+                                       'c1ccnc(c1)N=Nc2ccccn2',
+                                       'c1ccnc(c1)N=Nc2ccccn2',
+                                       'c1cnccc1N=Nc2ccncc2',
+                                       'c1ccc(c(c1)N=Nc2ccc[nH]2)O',
+                                       'c1ccc(cc1)N=Nc2ccccc2']
+
+    X_test = featurise_mols(candidate_list_purchasable_test, representation)
 
     data_loader_e_iso_pi = TaskDataLoader('e_iso_pi', path)
     data_loader_z_iso_pi = TaskDataLoader('z_iso_pi', path)
@@ -161,15 +207,9 @@ if __name__ == '__main__':
 
     y_pred, y_var = m.predict_f(X_test)
 
-    # Output Standardised RMSE and RMSE on Train Set
-
-    y_pred_train, _ = m.predict_f(X_train)
-    train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
-    print("Train RMSE: {:.3f}".format(train_rmse))
-
     print(f'GP {representation} prediction is ')
     print(y_pred)
     print(f'GP {representation} variance is')
     print(y_var)
 
-    np.savetxt(f'predictions/purchasable_multioutput_gp_task_{task}.txt', y_pred)
+    np.savetxt(f'predictions/candidate_predictions_test/purchasable_multioutput_gp_task_{task}.txt', y_pred)

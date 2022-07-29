@@ -1,0 +1,5 @@
+Discovered Candidate SMILES is: CSC1=C(C(N)=NC2=C(C(N)=NN12)/N=N/C3=CC=C(S(N)(=O)=O)C=C3)C#N
+Closest in training set are:
+CC1=NOC(C)=C1/N=N/C2=CC=C([N+]([O-])=O)C=C2
+CC(S1)=CC=C1/N=N/C2=CC=C(C#N)C=C2
+[H]C1=C(C=C([H])C(/N=N/C2=C(C#N)C=C([N+]([O-])=O)C=C2C#N)=C1)N(CC)CC

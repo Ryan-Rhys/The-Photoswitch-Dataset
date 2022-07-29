@@ -150,6 +150,8 @@ def main(path, representation):
     print("RMSE: {:.3f}".format(rmse))
     print("MAE: {:.3f}".format(mae))
     print("\nAbsolute error per molecule is {} ".format(per_molecule))
+    print(f"predicted values are {y_pred}")
+    print(f"true values are {y_test}")
 
 
 if __name__ == '__main__':

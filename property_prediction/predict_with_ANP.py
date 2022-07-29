@@ -37,7 +37,7 @@ def main(task, path, representation, use_pca, n_trials, test_set_size, batch_siz
     :return:
     """
 
-    path_to_save = task + '/results/anp/'
+    path_to_save = task + '/results/anp/'  # Note this directory must be created in advance if not pre-existing
     data_loader = TaskDataLoader(task, path)
     smiles_list, y = data_loader.load_property_data()
     y_size = 1
@@ -252,13 +252,13 @@ if __name__ == '__main__':
                         help='Dimensionality of latent encoder hidden layers.')
     parser.add_argument('-lnh', '--lat_encoder_n_hidden', type=int, default=2,
                         help='Number of latent encoder hidden layers.')
-    parser.add_argument('-dhs', '--decoder_hidden_size', type=int, default=32,
+    parser.add_argument('-dhsl', '--decoder_hidden_size', type=int, default=32,
                         help='Dimensionality of decoder hidden layers.')
-    parser.add_argument('-dnh', '--decoder_n_hidden', type=int, default=2,
+    parser.add_argument('-dnhl', '--decoder_n_hidden', type=int, default=2,
                         help='Number of decoder hidden layers.')
 
     args = parser.parse_args()
 
     main(args.task, args.path, args.representation, args.use_pca, args.n_trials, args.test_set_size, args.batch_size,
-         args._learning_rate, args.iterations, args.r_size, args.det_encoder_hidden_size, args.det_encoder_n_hidden,
+         args.learning_rate, args.iterations, args.r_size, args.det_encoder_hidden_size, args.det_encoder_n_hidden,
          args.lat_encoder_hidden_size, args.lat_encoder_n_hidden, args.decoder_hidden_size, args.decoder_n_hidden)

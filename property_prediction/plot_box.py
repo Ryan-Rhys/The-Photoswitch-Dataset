@@ -8,7 +8,9 @@ import plotly.graph_objects as go
 
 if __name__ == '__main__':
 
+
     fig = go.Figure()
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)")
 
     # Defining x axis
     x = ['$\mathrm{\LARGE{E-Isomer}} \: \LARGE{\pi - \pi^*}$', '$\mathrm{\LARGE{E-Isomer}} \: \LARGE{\pi - \pi^*}$',
