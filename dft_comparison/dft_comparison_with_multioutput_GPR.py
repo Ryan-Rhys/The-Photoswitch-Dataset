@@ -1,7 +1,8 @@
 # Author: Ryan-Rhys Griffiths
 """
 Property prediction comparison against DFT error. 99 molecules with DFT-computed values at the CAM-B3LYP level of
-theory and 114 molecules with DFT-computed values at the PBE0 level of theory.
+theory and 114 molecules with DFT-computed values at the PBE0 level of theory. Benchmark molecules taken from Jacquemin
+et al. 2014 as well as the original photoswitch dataset. Molecules measured under the same solvent
 """
 
 import argparse
@@ -12,6 +13,7 @@ from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression, Lasso
 
 from data_utils import TaskDataLoader, featurise_mols
 from kernels import Tanimoto
@@ -25,7 +27,7 @@ def main(path, path_to_dft_dataset, representation, theory_level):
     :param theory_level: str giving the level of theory to compare against - CAM-B3LYP or PBE0 ['CAM-B3LYP', 'PBE0']
     """
 
-    task = 'e_iso_pi'  # e_iso_pi only task supported for TD-DFT comparison
+    task = 'e_iso_pi'  # e_iso_pi is the only task supported for TD-DFT comparison
     data_loader = TaskDataLoader(task, path)
     smiles_list, _, pbe0_vals, cam_vals, experimental_vals = data_loader.load_dft_comparison_data(path_to_dft_dataset)
 
@@ -83,8 +85,15 @@ def main(path, path_to_dft_dataset, representation, theory_level):
 
     tanimoto_active_dims = [i for i in range(feature_dim)]  # active dims for Tanimoto base kernel.
 
+    var_list = []
+    mogp_pred_list = []
+    dft_linear_pred_list = []
     mae_list = []
+    mse_list = []
     dft_mae_list = []
+    dft_mse_list = []
+    dft_linear_mae_list = []
+    dft_linear_mse_list = []
 
     # We define the Gaussian Process optimisation objective
 
@@ -96,6 +105,8 @@ def main(path, path_to_dft_dataset, representation, theory_level):
     print('\nBeginning training loop...')
 
     for i in range(len(y_with_dft)):
+
+        print(f'Starting iteration {i}')
 
         X_train = np.delete(X_with_dft, i, axis=0)
         y_train = np.delete(y_with_dft, i)
@@ -162,27 +173,89 @@ def main(path, path_to_dft_dataset, representation, theory_level):
 
         y_pred, y_var = m.predict_f(X_test)
 
+        var_list.append(np.array(y_var)[0][0])
+
         # Output MAE for this trial
 
         mae = abs(y_test[:, 0] - y_pred)
 
+        # Mean signed error
+
+        mse = y_test[:, 0] - y_pred
+
         print("MAE: {}".format(mae))
 
-        # Store values in order to compute the mean and standard error of the statistics across trials
+        # Store values and prediction in order to compute the mean and standard error of the statistics across trials
 
-        mae_list.append(mae)
+        mogp_pred_list.append(np.array(y_pred)[0][0])
+        mae_list.append(np.array(mae)[0][0])
+        mse_list.append(np.array(mse)[0][0])
 
         # DFT prediction scores on the same trial
 
+        # Mean absolute error
         dft_mae = abs(y_test[:, 0] - dft_test)
 
-        dft_mae_list.append(dft_mae)
+        # Mean signed error
+        dft_mse = y_test[:, 0] - dft_test
 
+        dft_mae_list.append(dft_mae[0])
+        dft_mse_list.append(dft_mse[0])
+
+        # TD-DFT prediction corrected by linear regression on the mean signed errors
+
+        # Compute the MSE on the train set
+        dft_mse_train = np.concatenate((y_with_dft[0:i], y_with_dft[i+1:])) - np.concatenate((dft_vals[0:i], dft_vals[i+1:]))
+
+        # Fit a Lasso model to the train set MSE values
+        # dft_reg = LinearRegression().fit(np.concatenate((X_with_dft[0:i], X_with_dft[i+1:])), dft_mse_train)
+        dft_reg_lasso = Lasso(alpha=0.1)
+        dft_reg_lasso.fit(np.concatenate((X_with_dft[0:i], X_with_dft[i+1:])), dft_mse_train)
+
+        # Predict the single heldout point
+        # dft_correction = dft_reg.predict(X_with_dft[i].reshape(1, -1))  # Linear regression has trouble in high dimensions so Lasso instead.
+        dft_correction = dft_reg_lasso.predict(X_with_dft[i].reshape(1, -1))
+
+        # Add the correction to the DFT prediction
+        dft_linear = dft_test + dft_correction
+
+        # Measure metrics
+        dft_linear_mae = abs(y_test[:, 0] - dft_linear)
+        dft_linear_mse = y_test[:, 0] - dft_linear
+
+        dft_linear_pred_list.append(dft_linear[0])
+        dft_linear_mae_list.append(dft_linear_mae[0])
+        dft_linear_mse_list.append(dft_linear_mse[0])
+
+    mogp_pred_list = np.array(mogp_pred_list)
+    dft_linear_pred_list = np.array(dft_linear_pred_list)
     mae_list = np.array(mae_list)
+    mse_list = np.array(mse_list)
     dft_mae_list = np.array(dft_mae_list)
+    dft_mse_list = np.array(dft_mse_list)
+    dft_linear_mae_list = np.array(dft_linear_mae_list)
+    dft_linear_mse_list = np.array(dft_linear_mse_list)
+    var_list = np.array(var_list)
 
+    print("\nmean GP-Tanimoto Variance: {:.4f} +- {:.4f}\n".format(np.mean(var_list), np.std(var_list)/np.sqrt(len(var_list))))
     print("\nmean GP-Tanimoto MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
-    print("mean {} MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mae_list), np.std(dft_mae_list)/np.sqrt(len(dft_mae_list))))
+    print("\nmean GP-Tanimoto MSE: {:.4f} +- {:.4f}\n".format(np.mean(mse_list), np.std(mse_list)/np.sqrt(len(mse_list))))
+    print("mean {} TD-DFT MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mae_list), np.std(dft_mae_list)/np.sqrt(len(dft_mae_list))))
+    print("mean {} TD-DFT MSE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mse_list), np.std(dft_mse_list)/np.sqrt(len(dft_mse_list))))
+    print("mean {} TD-DFT Linear MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_linear_mae_list), np.std(dft_linear_mae_list)/np.sqrt(len(dft_linear_mae_list))))
+    print("mean {} TD-DFT Linear MSE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_linear_mse_list), np.std(dft_linear_mse_list)/np.sqrt(len(dft_linear_mse_list))))
+
+    np.savetxt(f'dft_predictions/var_values_{theory_level}.txt', var_list)
+    np.savetxt(f'dft_predictions/ground_truth_values_{theory_level}.txt', y_with_dft)
+    np.savetxt(f'dft_predictions/multioutput_gp_{theory_level}.txt', mogp_pred_list)
+    np.savetxt(f'dft_predictions/tddft_{theory_level}.txt', dft_vals)
+    np.savetxt(f'dft_predictions/tddft_linear_{theory_level}.txt', dft_linear_pred_list)
+    np.savetxt(f'dft_predictions/multioutput_gp_mae_{theory_level}.txt', mae_list)
+    np.savetxt(f'dft_predictions/multioutput_gp_mse_{theory_level}.txt', mse_list)
+    np.savetxt(f'dft_predictions/tddft_mae_{theory_level}.txt', dft_mae_list)
+    np.savetxt(f'dft_predictions/tddft_mse_{theory_level}.txt', dft_mse_list)
+    np.savetxt(f'dft_predictions/tddft_linear_mae_{theory_level}.txt', dft_linear_mae_list)
+    np.savetxt(f'dft_predictions/tddft_linear_mse_{theory_level}.txt', dft_linear_mse_list)
 
 
 if __name__ == '__main__':
@@ -196,7 +269,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
-    parser.add_argument('-th', '--theory_level', type=str, default='PBE0',
+    parser.add_argument('-th', '--theory_level', type=str, default='CAM-B3LYP',
                         help='level of theory to compare against - CAM-B3LYP or PBE0 [CAM-B3LYP, PBE0]')
 
     args = parser.parse_args()

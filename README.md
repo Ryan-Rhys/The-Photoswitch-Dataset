@@ -19,11 +19,11 @@ conda create -n photoswitch python=3.7
 
 conda install -c conda-forge rdkit
 
-conda install umap-learn seaborn xlrd matplotlib ipython pytest pytorch scikit-learn pandas
+conda install seaborn xlrd matplotlib ipython pytest pytorch scikit-learn pandas
 
 pip install git+https://github.com/GPflow/GPflow.git@develop#egg=gpflow
 
-pip install dgl dgllife jupyter gpflux
+pip install dgl dgllife jupyter gpflux umap-learn
 
 git clone https://github.com/hyperopt/hyperopt-sklearn.git
 cd hyperopt-sklearn
