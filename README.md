@@ -59,7 +59,7 @@ aggregated across the Random Forest, Gaussian Process, Multioutput Gaussian Proc
 and Attentive Neural Process models.
 
 <p align="center">
-  <img src="boxplot_repr.png" width="500" title="logo">
+  <img src="white_box.png" width="500" title="logo">
 </p>
 
 ## TD-DFT Comparison
@@ -71,17 +71,17 @@ level of theory to compare against using the theory level flag (CAM-B3LYP or PBE
 python  dft_comparison_with_GPR.py -theory_level CAM-B3LYP                        
 ```
 
-| Metric  | GPR-Tanimoto + Fragprints | CAM-B3LYP TD-DFT |
-| ------------- | ------------- | ------------- |
-| MAE  | 14.9 nm | 16.5 nm | 
+| Metric  | GPR-Tanimoto + Fragprints | CAM-B3LYP TD-DFT | CAM-B3LYP + Linear |
+| ------------- | ------------- | ------------- | ------------- |
+| MAE  | 14.9 nm | 16.5 nm | 10.7 nm |
 
 ```bash
 python  dft_comparison_with_GPR.py -theory_level PBE0                        
 ```
 
-| Metric  | GPR-Tanimoto + Fragprints | PBE0 TD-DFT |
-| ------------- | ------------- | ------------- |
-| MAE  | 15.2 nm | 26.0 nm | 
+| Metric  | GPR-Tanimoto + Fragprints | PBE0 TD-DFT | PBE0 + Linear |
+| ------------- | ------------- | ------------- | ------------- |
+| MAE  | 15.2 nm | 26.0 nm | 12.4 nm |
 
 ## Human Performance Comparison
 
@@ -92,7 +92,7 @@ python  human_performance_comparison.py
 ```
 
 <p align="center">
-  <img src="humanGraph.png" width="500" title="logo">
+  <img src="human_performance_comparison.png" width="500" title="logo">
 </p>
 
 
