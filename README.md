@@ -179,7 +179,7 @@ If you find the Photoswitch Dataset useful for your research, please consider ci
   author = {Griffiths, Ryan-Rhys and Greenfield, Jake L. and Thawani, Aditya R. and Jamasb, Arian R. and Moss, Henry B. and Bourached, Anthony and Jones, Penelope and McCorkindale, William and Aldrick, Alexander A. and  Fuchter, Matthew J. and Lee, Alpha A.},
   title = {Data-Driven Discovery of Molecular Photoswitches with Multioutput Gaussian Processes},
   publisher = {arXiv},
-  year = {2020}, 
+  year = {2022}, 
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
 ```
