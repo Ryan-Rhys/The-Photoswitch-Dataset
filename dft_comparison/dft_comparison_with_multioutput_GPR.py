@@ -13,7 +13,7 @@ from gpflow.mean_functions import Constant
 from gpflow.utilities import print_summary
 import numpy as np
 from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import LinearRegression, Lasso
+from sklearn.linear_model import Lasso
 
 from data_utils import TaskDataLoader, featurise_mols
 from kernels import Tanimoto
@@ -120,7 +120,38 @@ def main(path, path_to_dft_dataset, representation, theory_level):
         y_test = y_test.reshape(-1, 1)
 
         X_train = X_train.astype(np.float64)
+        X_train = X_train.astype(np.float64)
+        X_train = X_train.astype(np.float64)
         X_test = X_test.astype(np.float64)
+
+        def test_leakage(x1, x2, x3, y1, y2, y3, X_test):
+            """
+            Function to prevent test leakage in train/test splits for multitask learning
+            param: x1, x2, x3: input molecules for other tasks
+            param: y1, y2, y3: labels for other tasks
+            param: X_test: the test molecules
+            """
+
+            other_tasks = [x1, x2, x3]
+            other_labels = [y1, y2, y3]
+            for i in range(len(other_tasks)):
+                indices_to_delete = []
+                for j in range(len(other_tasks[i])):
+                    other_mol = other_tasks[i][j]
+                    if np.any([np.array_equal(other_mol, mol) for mol in X_test]) == True:
+                        indices_to_delete.append(j)
+                indices_to_delete.reverse()
+                for index in indices_to_delete:
+                    other_tasks[i] = np.delete(other_tasks[i], index, axis=0)
+                    other_labels[i] = np.delete(other_labels[i], index, axis=0)
+
+            x1, x2, x3 = other_tasks[0], other_tasks[1], other_tasks[2]
+            y1, y2, y3 = other_labels[0], other_labels[1], other_labels[2]
+
+            return x1, x2, x3, y1, y2, y3
+
+        X_z_iso_pi, X_e_iso_n, X_z_iso_n, y_z_iso_pi, y_e_iso_n, y_z_iso_n = \
+            test_leakage(X_z_iso_pi, X_e_iso_n, X_z_iso_n, y_z_iso_pi, y_e_iso_n, y_z_iso_n, X_test)
 
         # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
         X_augmented = np.vstack((np.append(X_train, np.zeros((len(X_train), 1)), axis=1),
@@ -237,9 +268,9 @@ def main(path, path_to_dft_dataset, representation, theory_level):
     dft_linear_mse_list = np.array(dft_linear_mse_list)
     var_list = np.array(var_list)
 
-    print("\nmean GP-Tanimoto Variance: {:.4f} +- {:.4f}\n".format(np.mean(var_list), np.std(var_list)/np.sqrt(len(var_list))))
-    print("\nmean GP-Tanimoto MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
-    print("\nmean GP-Tanimoto MSE: {:.4f} +- {:.4f}\n".format(np.mean(mse_list), np.std(mse_list)/np.sqrt(len(mse_list))))
+    print("\nmean MOGP-Tanimoto Variance: {:.4f} +- {:.4f}\n".format(np.mean(var_list), np.std(var_list)/np.sqrt(len(var_list))))
+    print("\nmean MOGP-Tanimoto MAE: {:.4f} +- {:.4f}\n".format(np.mean(mae_list), np.std(mae_list)/np.sqrt(len(mae_list))))
+    print("\nmean MOGP-Tanimoto MSE: {:.4f} +- {:.4f}\n".format(np.mean(mse_list), np.std(mse_list)/np.sqrt(len(mse_list))))
     print("mean {} TD-DFT MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mae_list), np.std(dft_mae_list)/np.sqrt(len(dft_mae_list))))
     print("mean {} TD-DFT MSE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_mse_list), np.std(dft_mse_list)/np.sqrt(len(dft_mse_list))))
     print("mean {} TD-DFT Linear MAE: {:.4f} +- {:.4f}\n".format(theory_level, np.mean(dft_linear_mae_list), np.std(dft_linear_mae_list)/np.sqrt(len(dft_linear_mae_list))))
@@ -269,7 +300,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--representation', type=str, default='fragprints',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
-    parser.add_argument('-th', '--theory_level', type=str, default='CAM-B3LYP',
+    parser.add_argument('-th', '--theory_level', type=str, default='PBE0',
                         help='level of theory to compare against - CAM-B3LYP or PBE0 [CAM-B3LYP, PBE0]')
 
     args = parser.parse_args()
