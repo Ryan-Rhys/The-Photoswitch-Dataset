@@ -1,4 +1,4 @@
-# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Copyright Ryan-Rhys Griffiths 2020
 # Author: Ryan-Rhys Griffiths
 """
 Script for filtering purchasable candidates. Criterion for new candidates is that the E isomer pi-pi*

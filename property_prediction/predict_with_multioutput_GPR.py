@@ -1,4 +1,4 @@
-# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Copyright Ryan-Rhys Griffiths 2020
 # Author: Ryan-Rhys Griffiths
 """
 Script for training a model to predict properties in the photoswitch dataset using multioutput
@@ -91,7 +91,36 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
         X_train = X_train.astype(np.float64)
         X_test = X_test.astype(np.float64)
 
+        def test_leakage(x1, x2, x3, y1, y2, y3, X_test):
+            """
+            Function to prevent test leakage in train/test splits for multitask learning
+            param: x1, x2, x3: input molecules for other tasks
+            param: y1, y2, y3: labels for other tasks
+            param: X_test: the test molecules
+            """
+
+            other_tasks = [x1, x2, x3]
+            other_labels = [y1, y2, y3]
+            for i in range(len(other_tasks)):
+                indices_to_delete = []
+                for j in range(len(other_tasks[i])):
+                    other_mol = other_tasks[i][j]
+                    if np.any([np.array_equal(other_mol, mol) for mol in X_test]) == True:
+                        indices_to_delete.append(j)
+                indices_to_delete.reverse()
+                for index in indices_to_delete:
+                    other_tasks[i] = np.delete(other_tasks[i], index, axis=0)
+                    other_labels[i] = np.delete(other_labels[i], index, axis=0)
+
+            x1, x2, x3 = other_tasks[0], other_tasks[1], other_tasks[2]
+            y1, y2, y3 = other_labels[0], other_labels[1], other_labels[2]
+
+            return x1, x2, x3, y1, y2, y3
+
         if task == 'e_iso_pi':
+            X_z_iso_pi, X_e_iso_n, X_z_iso_n, y_z_iso_pi, y_e_iso_n, y_z_iso_n = \
+                test_leakage(X_z_iso_pi, X_e_iso_n, X_z_iso_n, y_z_iso_pi, y_e_iso_n, y_z_iso_n, X_test)
+
             # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
             X_augmented = np.vstack((np.append(X_train, np.zeros((len(X_train), 1)), axis=1),
                                      np.append(X_z_iso_pi, np.ones((len(X_z_iso_pi), 1)), axis=1),
@@ -110,6 +139,8 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
             y_test = np.hstack((y_test, np.zeros_like(y_test)))
 
         elif task == 'z_iso_pi':
+            X_e_iso_pi, X_e_iso_n, X_z_iso_n, y_e_iso_pi, y_e_iso_n, y_z_iso_n = \
+                test_leakage(X_e_iso_pi, X_e_iso_n, X_z_iso_n, y_e_iso_pi, y_e_iso_n, y_z_iso_n, X_test)
             # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
             X_augmented = np.vstack((np.append(X_e_iso_pi, np.zeros((len(X_e_iso_pi), 1)), axis=1),
                                      np.append(X_train, np.ones((len(X_train), 1)), axis=1),
@@ -128,6 +159,8 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
             y_test = np.hstack((y_test, np.ones_like(y_test)))
 
         elif task == 'e_iso_n':
+            X_e_iso_pi, X_z_iso_pi, X_z_iso_n, y_e_iso_pi, y_z_iso_pi, y_z_iso_n = \
+                test_leakage(X_e_iso_pi, X_z_iso_pi, X_z_iso_n, y_e_iso_pi, y_z_iso_pi, y_z_iso_n, X_test)
             # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
             X_augmented = np.vstack((np.append(X_e_iso_pi, np.zeros((len(X_e_iso_pi), 1)), axis=1),
                                      np.append(X_z_iso_pi, np.ones((len(X_z_iso_pi), 1)), axis=1),
@@ -146,6 +179,8 @@ def main(path, task, representation, use_pca, n_trials, test_set_size):
             y_test = np.hstack((y_test, np.ones_like(y_test) * 2))
 
         else:
+            X_e_iso_pi, X_e_iso_n, X_z_iso_pi, y_e_iso_pi, y_e_iso_n, y_z_iso_pi = \
+                test_leakage(X_e_iso_pi, X_e_iso_n, X_z_iso_pi, y_e_iso_pi, y_e_iso_n, y_z_iso_pi, X_test)
             # Augment the input with zeroes, ones, twos, threes to indicate the required output dimension
             X_augmented = np.vstack((np.append(X_e_iso_pi, np.zeros((len(X_e_iso_pi), 1)), axis=1),
                                      np.append(X_z_iso_pi, np.ones((len(X_z_iso_pi), 1)), axis=1),
@@ -228,9 +263,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-p', '--path', type=str, default='../dataset/photoswitches.csv',
                         help='Path to the photoswitches.csv file.')
-    parser.add_argument('-t', '--task', type=str, default='z_iso_pi',
+    parser.add_argument('-t', '--task', type=str, default='z_iso_n',
                         help='str specifying the task. One of [e_iso_pi, z_iso_pi, e_iso_n, z_iso_n].')
-    parser.add_argument('-r', '--representation', type=str, default='fragprints',
+    parser.add_argument('-r', '--representation', type=str, default='fragments',
                         help='str specifying the molecular representation. '
                              'One of [fingerprints, fragments, fragprints].')
     parser.add_argument('-pca', '--use_pca', type=bool, default=False,

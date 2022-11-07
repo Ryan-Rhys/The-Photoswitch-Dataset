@@ -1,4 +1,4 @@
-# Copyright Ryan-Rhys Griffiths and Aditya Raymond Thawani 2020
+# Copyright Ryan-Rhys Griffiths 2020
 # Author: Ryan-Rhys Griffiths
 """
 Script for comparing against human performance on a set of 5 molecules with Tanimoto GP.
