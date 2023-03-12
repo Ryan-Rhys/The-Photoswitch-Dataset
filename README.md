@@ -173,13 +173,14 @@ Please see the examples folder for a tutorial on how to implement and use the GP
 If you find the Photoswitch Dataset useful for your research, please consider citing the following article.
 
 ```
-@article{2022_Griffiths,
-  doi = {10.48550/ARXIV.2008.03226}
-  url = {https://arxiv.org/abs/2008.03226},
-  author = {Griffiths, Ryan-Rhys and Greenfield, Jake L. and Thawani, Aditya R. and Jamasb, Arian R. and Moss, Henry B. and Bourached, Anthony and Jones, Penelope and McCorkindale, William and Aldrick, Alexander A. and  Fuchter, Matthew J. and Lee, Alpha A.},
-  title = {Data-Driven Discovery of Molecular Photoswitches with Multioutput Gaussian Processes},
-  publisher = {arXiv},
-  year = {2022}, 
-  copyright = {arXiv.org perpetual, non-exclusive license}
+@article{2022Griffiths,
+  title={Data-driven discovery of molecular photoswitches with multioutput Gaussian processes},
+  author={Griffiths, Ryan-Rhys and Greenfield, Jake L and Thawani, Aditya R and Jamasb, Arian R and Moss, Henry B and Bourached, Anthony and Jones, Penelope and McCorkindale, William and Aldrick, Alexander A and Fuchter, Matthew J and others},
+  journal={Chemical Science},
+  volume={13},
+  number={45},
+  pages={13541--13551},
+  year={2022},
+  publisher={Royal Society of Chemistry}
 }
 ```
